@@ -1,0 +1,22 @@
+body{  /*選取 HTML 裡的 <body>*/
+    background-color: #f4f7fb;  /*background-color:設定背景顏色*/
+    padding: 40px;  /*padding 是「內距」，會在內容與頁面邊緣之間保留空間*/
+}  /*{}內放置要套用的樣式*/
+
+h1{  /*h1：只選取 HTML 中的 <h1>*/
+    color: #1d4ed8  /*color：設定文字顏色*/
+}
+/* 選取整個網頁內容區，將背景顏色設定成淡灰藍色 */
+
+button {  /*button：選取所有 <button> 元素*/
+    background-color: #1d4ed8; /*background-color：按鈕背景設為深藍色*/
+    color: white;  /*color：按鈕文字設為白色*/
+    padding: 10px 18px; /*上下內距為 10px ; 左右內距為 18px*/
+    border-radius: 6px;  /*按鈕四個角變成圓角*/
+    border: none;  /*移除瀏覽器預設的按鈕邊框*/
+    cursor: pointer;  /*滑鼠移到按鈕時，游標會變成手指形狀*/  /*cursor:是指滑鼠游標*/
+}
+
+button:hover {  /*選取「滑鼠目前停留的按鈕」*/
+    background-color: #1e40af; /*改變背景顏色*/
+}
