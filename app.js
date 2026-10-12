@@ -8,4 +8,8 @@ const startButton = document.getElementById("startButton");
 startButton.addEventListener("click", function() {
     alert("分析功能準備中");
 });
-//當 startButton 被點擊時，顯示「分析功能準備中！」
+//addEventListener：監聽使用者的操作
+//"click"：要監聽的事件是「點擊」
+//function () { ... }：按鈕被點擊後，要執行的程式
+//alert(...)：顯示瀏覽器提示視窗
+//當 startButton 

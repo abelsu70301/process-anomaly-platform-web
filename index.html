@@ -1,21 +1,61 @@
-<!DOCTYPE html>  <!--<html>:HTML 文件的開始標籤  #!DOCTYPE:告訴瀏覽器這是一份使用現代 HTML5 標準編寫的網頁-->
-<html lang="zh-Hant">  <!--lang="zh-Hant"：表示網頁主要使用繁體中文-->
-<head>  <!--是網頁的「設定區」-->
-    <meta charset="UTF-8">  <!--<meta>：提供網頁相關設定資訊/charset：字元編碼設定/UTF-8：支援繁體中文、英文及大多數語言--> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  <!--name="viewport"：設定使用者看到的畫面範圍/width=device-width：網頁寬度配合裝置螢幕寬度/initial-scale=1.0：第一次開啟時使用正常縮放比例-->
-    <title>製程異常分析輔助平台</title>   <!--裡面的文字會顯示在：瀏覽器上方的分頁/瀏覽器書籤/搜尋結果的標題-->
-    <link rel="stylesheet" href="style.css">  <!--link:連接外部檔案/rel="stylesheet"：告訴瀏覽器連接的是樣式表/href="style.css"：指定要載入的檔案名稱(因兩份檔案在同資料夾寫檔名即可)-->
-</head>
-<body>  <!--是網頁的「可見內容區」-->
-    <h1>製程異常分析輔助平台</h1>  <!--"h"代表heading標題/"h1"是網頁最重要的第一層標題-->
-    <p>上傳製程量測資料，取得異常分類結果與可疑因子排名。</p>  <!--p 代表 paragraph（段落），適合放一般說明文字-->
-    <button id="startButton">開始分析</button>
+<!DOCTYPE html> <!--<html>:HTML 文件的開始標籤  !DOCTYPE:告訴瀏覽器這是一份使用現代 HTML5 標準編寫的網頁-->
+<html lang="zh-Hant"> <!--HTML文件開始，lang="zh-Hant"：表示網頁主要使用繁體中文-->
 
-    <script src="app.js"></script>  <!--<script>：載入或撰寫 JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 </body> 前面，是為了讓瀏覽器先讀完 HTML 內容，再執行 JavaScript-->
+<head> <!--是網頁的「設定區」-->
+    <meta charset="UTF-8"> <!--<meta>：提供網頁相關設定資訊/charset：字元編碼設定/UTF-8：支援繁體中文、英文及大多數語言-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--name="viewport"：設定使用者看到的畫面範圍/width=device-width：網頁寬度配合裝置螢幕寬度/initial-scale=1.0：第一次開啟時使用正常縮放比例-->
+    <title>製程異常分析輔助平台</title> <!--裡面的文字會顯示在：瀏覽器上方的分頁/瀏覽器書籤/搜尋結果的標題-->
+    <link rel="stylesheet" href="./css/style.css">
+    <!--link:連接外部檔案/rel="stylesheet"：告訴瀏覽器連接的是樣式表/href=""：載入 css 資料夾中的 style.css-->
+</head>
+
+<body> <!--是網頁的「可見內容區」-->
+    <header> <!--表示頁面或區塊頂端的內容-->
+        <h1>製程異常分析輔助平台</h1> <!--"h"代表heading標題/"h1"是網頁最重要的第一層標題-->
+        <p>上傳製程量測資料，取得異常分類結果與可疑因子排名。</p> <!--p 代表 paragraph（段落），適合放一般說明文字-->
+    </header>
+
+    <aside> <!--主要內容旁邊的輔助區域，常用來做側邊欄-->
+        <h2>功能選單</h2>
+
+        <nav> <!--放置網站導覽連結-->
+            <a href="#analysis">異常分析</a> <!--a:超連結--> <!--href="#analysis"：跳到 id="analysis" 的區塊-->
+        </nav>
+    </aside>
+
+    <main> <!-- 網頁最主要的內容，一個頁面通常只使用一次 -->
+        <section id="analysis"> <!-- 具有特定主題的內容區塊 -->
+            <h2>異常分析</h2> <!-- 第二層標題，層級低於 h1 -->
+
+            <form> <!--包住一組需要輸入或送出的資料-->
+                <label for="csvFile">選擇 CSV 檔案：</label> <!--label:說明輸入欄位的用途-->
+                <!--for="csvFile":表示這個說明對應到 id="csvFile" 的欄位-->
+                <input type="file" id="csvFile" name="csvFile" accept=".csv">
+
+                <p> <!--把提醒內容包成一個完整段落-->
+                    <strong>提醒：</strong> <!--表示重要內容，通常會顯示成粗體-->
+                    <small>目前僅接受 csv 格式，這一階段只建立操作介面，尚未真正上傳資料。</small> <!--表示補充或次要資訊，通常會顯示成較小文字-->
+                </p>
+
+                <div class="form-field">
+                    <label for="engineerNote">工程師備註：</label>
+                    <textarea id="engineerNote" name="engineerNote" rows="4" placeholder="請輸入分析條件或現場觀察記錄"></textarea>
+                    <!--可輸入多行文字-->
+                </div>
+                <div class="form-actions"> <!--預設是區塊元素，會從新的一行開始，所以「開始分析」按鈕就會換行-->
+                    <button type="button" id="startButton">開始分析</button> <!--button:建立可以點擊的按鈕-->
+                    <!--type="button"：避免按鈕自動送出表單、重新整理頁面-->
+                </div>
+
+            </form>
+
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <!--<script>：載入或撰寫JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 /body前面，是為了讓瀏覽器先讀完 HTML 內容再執行 JavaScript-->
 
 </body>
-</html>  <!--HTML 文件的結束標籤，/代表結束-->
 
-
-
- 
+</html> <!--HTML 文件的結束標籤，/代表結束-->
