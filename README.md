@@ -28,41 +28,78 @@ Web Programming 課程實作專案。
 - 建立工程師備註輸入區
 - 將 CSS 移至 `css/style.css`
 
+### W3：FastAPI、Uvicorn 與網站部署
+
+- 建立 Python 虛擬環境
+- 安裝 FastAPI、Uvicorn 與 aiofiles
+- 建立 `requirements.txt`
+- 使用 `site` 資料夾管理前端靜態檔案
+- 使用 FastAPI 的 StaticFiles 提供網頁
+- 使用 Uvicorn 在 7777 埠啟動網站
+- 完成本機、指定埠位及課程公開網址測試
+
 ## 專案結構
 
 ```text
 WEB/
-├── css/
-│   └── style.css
+├── site/
+│   ├── css/
+│   │   └── style.css
+│   ├── app.js
+│   └── index.html
 ├── .gitignore
 ├── README.md
 ├── ai.md
-├── app.js
-├── index.html
+├── requirements.txt
+├── server.py
 └── web.md
+```
+
+`venv` 為本機虛擬環境，已透過 `.gitignore` 排除，不會上傳至 GitHub。
+
+## 首次安裝
+
+進入 `WEB` 專案資料夾後，建立虛擬環境：
+
+```powershell
+python -m venv venv
+```
+
+啟動虛擬環境：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+```
+
+安裝專案所需套件：
+
+```powershell
+python -m pip install -r requirements.txt
 ```
 
 ## 本機執行方式
 
-進入 `WEB` 專案資料夾後，執行：
+確認虛擬環境已啟動後，執行：
 
 ```powershell
-python -m http.server 5500
+python -m uvicorn server:app --reload --host 0.0.0.0 --port 7777
 ```
 
 接著使用瀏覽器開啟：
 
 ```text
-http://localhost:5500
+http://localhost:7777/
 ```
 
 若要停止伺服器，請在終端機按下 `Ctrl + C`。
 
 ## 文件說明
 
-- `README.md`：專案介紹與執行方式
+- `README.md`：專案介紹、結構與執行方式
 - `web.md`：每週操作與學習紀錄
 - `ai.md`：重要的 AI 協作、問題排查與驗證紀錄
+- `requirements.txt`：Python 套件與版本紀錄
 
 ## 尚未完成
 

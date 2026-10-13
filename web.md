@@ -4,7 +4,7 @@
 
 - [x] W1：建立 Web 專案及基本靜態網頁
 - [x] W2：完成 Web UI 與語意化 HTML
-- [ ] W3：待完成
+- [x] W3：完成 FastAPI 與 Uvicorn 本機部署
 - [ ] W4：待完成
 
 ---
@@ -205,4 +205,165 @@
 <div class="form-actions">
     <button type="button" id="startButton">開始分析</button>
 </div>
+```
+
+---
+
+## W3：使用 FastAPI 與 Uvicorn 提供靜態網頁
+
+### 本週目標
+
+- 認識 FastAPI、Uvicorn 與 ASGI
+- 建立 Python 虛擬環境
+- 使用 StaticFiles 提供靜態網頁
+- 透過本機伺服器開啟網站
+- 為後續加入後端功能與公開部署做準備
+
+### 操作紀錄
+
+- [x] 在 WEB 專案中建立 `venv` 虛擬環境
+- [x] 啟動 Python 虛擬環境
+- [x] 安裝 FastAPI、Uvicorn 與 aiofiles
+- [x] 建立 `requirements.txt`
+- [x] 建立 `server.py`
+- [x] 建立 `site` 資料夾
+- [x] 將 `index.html` 移至 `site` 資料夾
+- [x] 將 `app.js` 移至 `site` 資料夾
+- [x] 將 `css` 資料夾移至 `site` 資料夾
+- [x] 使用 Uvicorn 在 7777 埠啟動網站
+- [x] 測試 HTML、CSS 與 JavaScript 是否正常載入
+- [x] 使用實驗室電腦 IP 與 7777 埠開啟網頁
+- [x] 使用老師或助教設定的公開網址開啟網頁
+
+### 尚未完成
+
+本週部署相關實作皆已完成。
+
+### 學習重點
+
+- FastAPI：用來建立 Python Web 應用程式。
+- Uvicorn：負責啟動並執行 Web 伺服器。
+- ASGI：Python Web 應用程式與伺服器之間的溝通標準。
+- StaticFiles：提供 HTML、CSS、JavaScript 等靜態檔案。
+- 虛擬環境：將不同專案使用的 Python 套件分開管理。
+- `requirements.txt`：記錄專案需要安裝的 Python 套件。
+- `--reload`：修改程式後自動重新啟動伺服器。
+- `--host 0.0.0.0`：讓伺服器監聽電腦上的網路介面。
+- `--port 7777`：指定伺服器使用 7777 埠。
+- `Ctrl + C`：停止正在執行的伺服器。
+- `localhost`：代表目前使用的這一台電腦。
+
+### 遇到的問題與解決方式
+
+#### 1. PowerShell 無法啟動虛擬環境
+
+執行 `Activate.ps1` 時，PowerShell 顯示系統已停用指令碼執行。
+
+使用以下指令，只在目前的 PowerShell 視窗暫時允許執行指令碼：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+```
+
+關閉 PowerShell 後，這項暫時設定就會失效，不會永久修改整台電腦的執行原則。
+
+#### 2. 重複執行 Move-Item 時顯示找不到檔案
+
+第一次執行時，`index.html`、`app.js` 與 `css` 已經成功移至 `site` 資料夾。
+
+第二次執行相同指令時，原本位置已經沒有這些檔案，所以 PowerShell 顯示找不到路徑。這不代表檔案遺失，只是檔案已經完成搬移。
+
+使用以下指令確認檔案位置：
+
+```powershell
+Get-ChildItem site -Recurse
+```
+
+#### 3. 避免將 venv 上傳到 GitHub
+
+`venv` 內包含大量可以重新安裝的套件，因此不需要上傳到 GitHub。
+
+在 `.gitignore` 中加入：
+
+```gitignore
+venv/
+__pycache__/
+*.pyc
+```
+
+### 專案結構
+
+```text
+WEB/
+├── site/
+│   ├── index.html
+│   ├── app.js
+│   └── css/
+│       └── style.css
+├── server.py
+├── requirements.txt
+├── README.md
+├── web.md
+├── ai.md
+└── .gitignore
+```
+
+`venv` 存在於本機專案中，但已透過 `.gitignore` 排除，因此不會上傳到 GitHub。
+
+### 啟動方式
+
+進入 WEB 專案資料夾並啟動虛擬環境後，執行：
+
+```powershell
+python -m uvicorn server:app --reload --host 0.0.0.0 --port 7777
+```
+
+接著使用瀏覽器開啟：
+
+```text
+http://localhost:7777/
+```
+
+### 本週心得
+
+原本使用 Python HTTP Server 開啟靜態網頁，本週改為使用 FastAPI 與 Uvicorn 提供網站內容。
+
+將 HTML、CSS 與 JavaScript 集中放入 `site` 資料夾後，前端檔案與 Python 伺服器程式有了更清楚的區分。我也了解虛擬環境可以隔離不同專案使用的套件，而 `requirements.txt` 可以記錄專案執行所需的套件。
+
+目前已完成本機與網路連線測試，可以透過 `http://localhost:7777/`、實驗室電腦 IP 加上 7777 埠，以及助教設定的公開網址正常顯示網頁。這次實作讓我了解公開網址、指定埠位、Uvicorn 與靜態網頁之間的連線關係。
+
+### 程式碼重點
+
+#### FastAPI 靜態網站設定
+
+```python
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
+
+app = FastAPI()
+
+app.mount(
+    "/",
+    StaticFiles(directory="site", html=True),
+    name="site"
+)
+```
+
+#### 安裝專案套件
+
+```powershell
+python -m pip install fastapi uvicorn aiofiles
+```
+
+#### 記錄套件版本
+
+```powershell
+python -m pip freeze > requirements.txt
+```
+
+#### 啟動 Uvicorn
+
+```powershell
+python -m uvicorn server:app --reload --host 0.0.0.0 --port 7777
 ```

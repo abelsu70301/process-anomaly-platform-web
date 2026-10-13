@@ -13,3 +13,11 @@ Thumbs.db
 
 *.log
 npm-debug.log*
+
+#Python 虛擬環境與暫存檔
+venv/
+__pycache__/
+*.pyc/
+#忽略虛擬環境與安裝套件
+#忽略 Python 自動產生的快取資料夾
+#忽略編譯後的 Python 暫存

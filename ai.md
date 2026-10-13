@@ -89,3 +89,30 @@ AI 說明 `accept=".csv"` 主要用來限制檔案選擇器顯示的類型，不
 ### 本週驗證
 
 我實際重新整理網頁，確認語意化結構、CSV 選擇欄位、工程師備註、導覽連結及 CSS 路徑皆能正常運作。
+
+---
+
+## W3：FastAPI、Uvicorn 與網站部署
+
+### PowerShell 無法啟動虛擬環境
+
+建立 `venv` 後，執行 `Activate.ps1` 時出現系統停用指令碼執行的錯誤。
+
+與 AI 討論後，為了避免永久修改整台電腦的設定，採用只對目前 PowerShell 視窗生效的方式：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\venv\Scripts\Activate.ps1
+```
+
+本人實際執行後，終端機成功出現 `(venv)`，確認虛擬環境已啟動。
+
+### 本週驗證
+
+本人實際確認：
+
+- `http://localhost:7777/` 可以顯示網頁
+- 使用指定埠位可以顯示網頁
+- 課程提供的公開網址可以顯示網頁
+- CSS 樣式與 JavaScript 按鈕功能正常
+- `venv` 已透過 `.gitignore` 排除
