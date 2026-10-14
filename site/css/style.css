@@ -1,5 +1,22 @@
+:root {
+    --color-primary: #1d4ed8;
+    --color-primary-dark: #1e40af;
+    --color-surface: #ffffff;
+    --color-border: #dbe3ee;
+    --color-page-background: #f4f7fb;
+    --color-text: #1e293b;
+}  /*這些 --color-名稱 就是我們自訂的 CSS 顏色變數*/
+
+body.dark-mode {
+    --color-surface: #1e293b;
+    --color-border: #475569;
+    --color-page-background: #0f172a;
+    --color-text: #e2e8f0;
+}  /*當 <body> 擁有 dark-mode 這個 class 時，就用這組顏色覆蓋原本的 CSS 變數*/
+
 body{  /*選取 HTML 裡的 <body>*/
-    background-color: #f4f7fb;  /*background-color:設定背景顏色*/
+    background-color: var(--color-page-background); /*background-color:設定背景顏色*/
+    color: var(--color-text);
     padding: 40px;  /*padding 是「內距」，會在內容與頁面邊緣之間保留空間*/
 }  /*{}內放置要套用的樣式*/
 
@@ -9,7 +26,7 @@ h1{  /*h1：只選取 HTML 中的 <h1>*/
 /* 選取整個網頁內容區，將背景顏色設定成淡灰藍色 */
 
 button {  /*button：選取所有 <button> 元素*/
-    background-color: #1d4ed8; /*background-color：按鈕背景設為深藍色*/
+    background-color:  var(--color-primary); /*background-color：按鈕背景設為深藍色*/
     color: white;  /*color：按鈕文字設為白色*/
     padding: 10px 18px; /*上下內距為 10px ; 左右內距為 18px*/
     border-radius: 6px;  /*按鈕四個角變成圓角*/
@@ -18,5 +35,84 @@ button {  /*button：選取所有 <button> 元素*/
 }
 
 button:hover {  /*選取「滑鼠目前停留的按鈕」*/
-    background-color: #1e40af; /*改變背景顏色*/
+    background-color: var(--color-primary-dark)/*改變背景顏色*/
+}
+
+/*讓側邊欄與主要內容變成兩個清楚的區塊*/
+.page-layout aside,
+.page-layout main {
+    background-color: var(--color-surface);  /*盒子的背景顏色*/
+    border: 1px solid var(--color-border);  /*盒子的邊框*/
+    border-radius: 8px;  /*邊框圓角*/
+    padding: 16px;  /*內容與邊框之間的內距*/
+}
+
+.page-layout {  /*手機排版*/
+    display: grid;  /*啟用 Grid 格線排版*/
+    grid-template-columns: 1fr;  /*目前只有一欄，側邊欄與主要內容會上下排列;1fr：占用一份可用空間，也就是目前整欄寬度*/
+    gap: 16px;  /*兩個區塊之間保留距離*/
+    padding: 16px;  /*內容與瀏覽器邊緣保留距離*/
+}
+
+/*排成直向選單*/
+aside nav {
+    display: flex;  /*啟用 Flexbox*/
+    flex-direction: column;  /*讓選項由上往下排列*/
+    gap: 8px;  /*設定每個選項之間的距離*/
+}
+
+aside nav a {
+    display: block;
+    padding: 10px 12px;
+    color: #1e3a5f;
+    background-color: #eff6ff;
+    border-radius: 6px;
+    text-decoration: none;  /*取消超連結預設的底線*/
+}
+
+/*選單的滑鼠互動效果*/
+aside nav a:hover {  /*a:hover 表示「滑鼠目前停留的超連結」*/
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+/*讓三張狀態卡片依可用寬度自動排列*/
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));  /*每張卡片最窄為 180px;有剩餘空間時，卡片平均擴張;放不下時，自動換到下一行*/
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.summary-card {
+    padding: 16px;
+    background-color: var(--color-page-background);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.summary-card h3 {
+    margin-top: 0;
+    color: var(--color-primary);
+}
+
+/*替頁尾加入樣式*/
+footer {
+    margin-top: 16px;  /*頁尾與上方內容保持距離*/
+    padding: 16px;  /*增加頁尾內部空間*/
+    text-align: center;  /*文字置中*/
+    color: var(--color-text);
+    border-top: 1px solid var(--color-border);
+}
+
+/*移除段落預設的上下外距*/
+footer p {
+    margin: 0;
+}
+/*螢幕寬度達到 768px 時，才套用裡面的樣式*/
+@media (min-width: 768px) {  /*平板與桌機版的兩欄排列*/
+    .page-layout {
+        grid-template-columns: 220px 1fr;  /*220px：左側功能選單固定寬度;1fr：右側主要內容使用剩下的空間*/
+        align-items: start;  /*兩個區塊都從上方開始排列*/
+    }
 }

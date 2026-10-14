@@ -153,59 +153,7 @@
 
 目前建立的是操作介面，選擇 CSV 檔案後，尚未真正讀取、上傳或分析資料。
 
-### 程式碼重點
 
-#### CSS 檔案連結
-
-```html
-<link rel="stylesheet" href="./css/style.css">
-```
-
-#### 功能選單
-
-```html
-<aside>
-    <h2>功能選單</h2>
-
-    <nav>
-        <a href="#analysis">異常分析</a>
-    </nav>
-</aside>
-```
-
-#### CSV 檔案選擇
-
-```html
-<label for="csvFile">選擇 CSV 檔案：</label>
-<input
-    type="file"
-    id="csvFile"
-    name="csvFile"
-    accept=".csv"
->
-```
-
-#### 工程師備註
-
-```html
-<div class="form-field">
-    <label for="engineerNote">工程師備註：</label>
-    <textarea
-        id="engineerNote"
-        name="engineerNote"
-        rows="4"
-        placeholder="請輸入分析條件或現場觀察記錄"
-    ></textarea>
-</div>
-```
-
-#### 開始分析按鈕
-
-```html
-<div class="form-actions">
-    <button type="button" id="startButton">開始分析</button>
-</div>
-```
 
 ---
 
@@ -333,37 +281,83 @@ http://localhost:7777/
 
 目前已完成本機與網路連線測試，可以透過 `http://localhost:7777/`、實驗室電腦 IP 加上 7777 埠，以及助教設定的公開網址正常顯示網頁。這次實作讓我了解公開網址、指定埠位、Uvicorn 與靜態網頁之間的連線關係。
 
-### 程式碼重點
+---
 
-#### FastAPI 靜態網站設定
+## W4：CSS 版面與 RWD
 
-```python
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+### 本週目標
 
-app = FastAPI()
+- 理解 CSS Box Model。
+- 使用 Grid 建立側邊欄與主要內容版面。
+- 使用 Flexbox 排列功能選單。
+- 使用 CSS 變數建立一致的配色。
+- 完成深色模式切換。
+- 驗證手機、平板及桌機版面。
 
-app.mount(
-    "/",
-    StaticFiles(directory="site", html=True),
-    name="site"
-)
+### 操作紀錄
+
+- 建立 `page-layout`，包住側邊欄與主要內容。
+- 手機版採用單欄排列。
+- 螢幕寬度達到 600px 時改為左右兩欄。
+- 使用 Flexbox 製作直向功能選單。
+- 加入資料狀態、分析狀態及歷史紀錄卡片。
+- 使用 `auto-fit` 與 `minmax()` 讓卡片自動換行。
+- 建立 CSS 顏色變數。
+- 使用 JavaScript 切換深色與淺色模式。
+- 加入語意化 `footer` 頁尾。
+- 使用瀏覽器開發者工具測試不同螢幕寬度。
+
+### 尚未完成
+
+- 真正讀取與檢查 CSV 資料。
+- 執行資料分析模型。
+- 顯示實際分析結果。
+- 從資料庫讀取歷史紀錄。
+- 讓側邊選單切換不同內容。
+
+### 學習重點
+
+#### Box Model
+
+HTML 元素可以視為一個盒子，包含內容、內距、邊框及外距。這次使用 `padding`、`border`、`margin` 和 `gap` 控制區塊間距。
+
+#### Grid 與 Flexbox
+
+Grid 適合控制側邊欄與主要內容等二維版面；Flexbox 適合控制功能選單等單一方向的排列。
+
+#### Mobile First
+
+先設計手機版的單欄排列，再使用 `@media` 為較寬的螢幕加入左右兩欄版面。
+
+#### CSS 變數
+
+使用 `:root` 統一管理顏色，再透過 `var()` 套用。深色模式只需要覆蓋變數，不必重寫所有元件樣式。
+
+### 遇到的問題與解決方式
+
+#### Grid 沒有生效
+
+`button:hover` 的 CSS 變數缺少 `);`，導致瀏覽器無法正確解析後面的 `.page-layout` 和 `@media`。補上完整語法後，左右兩欄恢復正常。
+
+#### JavaScript 沒有立即更新
+
+瀏覽器可能仍使用舊版 JavaScript 快取，因此在載入路徑加入版本參數：
+
+```html
+<script src="./app.js?v=4"></script>
 ```
 
-#### 安裝專案套件
+#### 側邊欄顯示在上方
 
-```powershell
-python -m pip install fastapi uvicorn aiofiles
-```
+使用瀏覽器開發者工具確認實際寬度，並將 RWD 斷點調整為 600px。寬度低於斷點時顯示上下排列，高於斷點時顯示左右排列。
 
-#### 記錄套件版本
+### 本週心得
 
-```powershell
-python -m pip freeze > requirements.txt
-```
+## 本週心得
 
-#### 啟動 Uvicorn
+這週理解 Grid 與 Flexbox 的用途不同：Grid 適合控制頁面主要版面，Flexbox 適合單一方向的元件排列。
+透過 mobile first 和 RWD 測試，可以讓同一個網頁適應不同尺寸的裝置；CSS 變數則能集中管理配色，讓深色模式更容易維護。
 
-```powershell
-python -m uvicorn server:app --reload --host 0.0.0.0 --port 7777
-```
+實作過程中曾遇到功能選單沒有呈現在左側，以及按下深色模式按鈕後畫面沒有變色的問題。
+我使用瀏覽器開發者工具確認視窗寬度與實際套用的 Grid 欄位，並透過 PowerShell 查看 CSS 內容，最後發現 CSS 變數語法缺少 `);`，導致後續版面規則沒有生效。
+另外，也在 JavaScript 路徑加入版本參數，避免瀏覽器繼續載入舊的快取。這次除錯讓我了解，小幅的語法錯誤也可能影響後續整段樣式，因此需要從實際套用結果逐步確認問題。

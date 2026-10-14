@@ -13,3 +13,19 @@ startButton.addEventListener("click", function() {
 //function () { ... }：按鈕被點擊後，要執行的程式
 //alert(...)：顯示瀏覽器提示視窗
 //當 startButton 
+
+const themeButton = document.getElementById("themeButton");  //getElementById("themeButton")：找到剛建立的深色模式按鈕
+
+
+themeButton.addEventListener("click", function () {  //addEventListener("click", ...)：監聽按鈕點擊
+    const darkModeEnabled = document.body.classList.toggle("dark-mode");
+    //document.body：取得網頁的 <body>
+    //classList.toggle("dark-mode")：若沒有這個 class 就加入；已經有就移除
+    //toggle() 會回傳目前是否已經有 dark-mode
+
+    if (darkModeEnabled) {  //if 判斷目前是不是深色模式
+        themeButton.textContent = "切換淺色模式";  //textContent 修改按鈕顯示的文字
+    } else {
+        themeButton.textContent = "切換深色模式";
+    }
+});

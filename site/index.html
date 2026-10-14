@@ -14,46 +14,74 @@
     <header> <!--表示頁面或區塊頂端的內容-->
         <h1>製程異常分析輔助平台</h1> <!--"h"代表heading標題/"h1"是網頁最重要的第一層標題-->
         <p>上傳製程量測資料，取得異常分類結果與可疑因子排名。</p> <!--p 代表 paragraph（段落），適合放一般說明文字-->
+        <button type="button" id="themeButton">切換深色模式</button>  <!--加入「深色模式」按鈕-->
     </header>
 
-    <aside> <!--主要內容旁邊的輔助區域，常用來做側邊欄-->
-        <h2>功能選單</h2>
+    <div class="page-layout">  <!--page-layout 是我們自己取的 class 名稱-->
+        <aside> <!--主要內容旁邊的輔助區域，常用來做側邊欄-->
+            <h2>功能選單</h2>
 
-        <nav> <!--放置網站導覽連結-->
-            <a href="#analysis">異常分析</a> <!--a:超連結--> <!--href="#analysis"：跳到 id="analysis" 的區塊-->
-        </nav>
-    </aside>
+            <nav> <!--放置網站導覽連結-->
+                <a href="#analysis">異常分析</a> <!--a:超連結--> <!--href="#analysis"：跳到 id="analysis" 的區塊-->
+                <a href="#">資料品質</a>
+                <a href="#">分析結果</a>
+                <a href="#">歷史紀錄</a>
+            </nav>
+        </aside>
 
-    <main> <!-- 網頁最主要的內容，一個頁面通常只使用一次 -->
-        <section id="analysis"> <!-- 具有特定主題的內容區塊 -->
-            <h2>異常分析</h2> <!-- 第二層標題，層級低於 h1 -->
 
-            <form> <!--包住一組需要輸入或送出的資料-->
-                <label for="csvFile">選擇 CSV 檔案：</label> <!--label:說明輸入欄位的用途-->
-                <!--for="csvFile":表示這個說明對應到 id="csvFile" 的欄位-->
-                <input type="file" id="csvFile" name="csvFile" accept=".csv">
+        <main> <!-- 網頁最主要的內容，一個頁面通常只使用一次 -->
+            <section id="analysis"> <!-- 具有特定主題的內容區塊 -->
+                <h2>異常分析</h2> <!-- 第二層標題，層級低於 h1 -->
 
-                <p> <!--把提醒內容包成一個完整段落-->
-                    <strong>提醒：</strong> <!--表示重要內容，通常會顯示成粗體-->
-                    <small>目前僅接受 csv 格式，這一階段只建立操作介面，尚未真正上傳資料。</small> <!--表示補充或次要資訊，通常會顯示成較小文字-->
-                </p>
+                <!--介面狀態卡片-->
+                <div class="summary-grid">  <!--<article>：一篇可以獨立理解的內容區塊-->  <!--summary-grid：之後控制整組卡片排列-->
+                    <article class="summary-card">
+                        <h3>資料狀態</h3>
+                        <p>尚未上傳資料</p>
+                    </article>
 
-                <div class="form-field">
-                    <label for="engineerNote">工程師備註：</label>
-                    <textarea id="engineerNote" name="engineerNote" rows="4" placeholder="請輸入分析條件或現場觀察記錄"></textarea>
-                    <!--可輸入多行文字-->
+                    <article class="summary-card">  <!--summary-card：控制每張卡片外觀-->
+                        <h3>分析狀態</h3>
+                        <p>等待執行分析</p>
+                    </article>
+
+                    <article class="summary-card">
+                        <h3>歷史紀錄</h3>
+                        <p>目前沒有紀錄</p>
+                    </article>
                 </div>
-                <div class="form-actions"> <!--預設是區塊元素，會從新的一行開始，所以「開始分析」按鈕就會換行-->
-                    <button type="button" id="startButton">開始分析</button> <!--button:建立可以點擊的按鈕-->
-                    <!--type="button"：避免按鈕自動送出表單、重新整理頁面-->
-                </div>
+                <form> <!--包住一組需要輸入或送出的資料-->
+                    <label for="csvFile">選擇 CSV 檔案：</label> <!--label:說明輸入欄位的用途-->
+                    <!--for="csvFile":表示這個說明對應到 id="csvFile" 的欄位-->
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv">
 
-            </form>
+                    <p> <!--把提醒內容包成一個完整段落-->
+                        <strong>提醒：</strong> <!--表示重要內容，通常會顯示成粗體-->
+                        <small>目前僅接受 csv 格式，這一階段只建立操作介面，尚未真正上傳資料。</small> <!--表示補充或次要資訊，通常會顯示成較小文字-->
+                    </p>
 
-        </section>
-    </main>
+                    <div class="form-field">
+                        <label for="engineerNote">工程師備註：</label>
+                        <textarea id="engineerNote" name="engineerNote" rows="4" placeholder="請輸入分析條件或現場觀察記錄"></textarea>
+                        <!--可輸入多行文字-->
+                    </div>
+                    <div class="form-actions"> <!--預設是區塊元素，會從新的一行開始，所以「開始分析」按鈕就會換行-->
+                        <button type="button" id="startButton">開始分析</button> <!--button:建立可以點擊的按鈕-->
+                        <!--type="button"：避免按鈕自動送出表單、重新整理頁面-->
+                    </div>
 
-    <script src="app.js"></script>
+                </form>
+
+            </section>
+        </main>
+    </div>
+
+    <footer>  <!--footer 是語意化標籤，表示頁面底部資訊，常放版權、聯絡資訊或專案說明-->
+    <p>製程異常分析輔助平台｜Web Programming 課程專案</p>
+    </footer>
+
+    <script src="./app.js?v=4"></script>  <!--?v=4 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
     <!--<script>：載入或撰寫JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 /body前面，是為了讓瀏覽器先讀完 HTML 內容再執行 JavaScript-->
 
 </body>
