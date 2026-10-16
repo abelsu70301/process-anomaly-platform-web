@@ -89,11 +89,17 @@ aside nav a:hover {  /*a:hover 表示「滑鼠目前停留的超連結」*/
     background-color: var(--color-page-background);
     border: 1px solid var(--color-border);
     border-radius: 8px;
+    cursor: pointer;  /*滑鼠移到卡片上時，游標會變成手指形狀*/
 }
 
 .summary-card h3 {
     margin-top: 0;
     color: var(--color-primary);
+}
+
+.summary-card.is-selected {  /*中間沒有空格，表示選取「同時具有這兩個 class」的元素*/
+    border-color: var(--color-primary);  /*把被選取卡片的邊框改成主色*/
+    box-shadow: 0 0 0 2px var(--color-primary);  /*在外圍增加一圈主色標示*/
 }
 
 /*替頁尾加入樣式*/

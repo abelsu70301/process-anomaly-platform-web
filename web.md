@@ -353,11 +353,66 @@ Grid 適合控制側邊欄與主要內容等二維版面；Flexbox 適合控制�
 
 ### 本週心得
 
-## 本週心得
-
 這週理解 Grid 與 Flexbox 的用途不同：Grid 適合控制頁面主要版面，Flexbox 適合單一方向的元件排列。
 透過 mobile first 和 RWD 測試，可以讓同一個網頁適應不同尺寸的裝置；CSS 變數則能集中管理配色，讓深色模式更容易維護。
 
 實作過程中曾遇到功能選單沒有呈現在左側，以及按下深色模式按鈕後畫面沒有變色的問題。
 我使用瀏覽器開發者工具確認視窗寬度與實際套用的 Grid 欄位，並透過 PowerShell 查看 CSS 內容，最後發現 CSS 變數語法缺少 `);`，導致後續版面規則沒有生效。
 另外，也在 JavaScript 路徑加入版本參數，避免瀏覽器繼續載入舊的快取。這次除錯讓我了解，小幅的語法錯誤也可能影響後續整段樣式，因此需要從實際套用結果逐步確認問題。
+
+---
+
+## W5：JavaScript DOM 操作與事件處理
+
+### 本週目標
+
+- 理解 Event、Function、DOM Change 與 UI Result 的互動流程。
+- 使用 JavaScript 取得 HTML 元素並監聽使用者操作。
+- 透過 DOM 操作更新頁面文字與 CSS class。
+- 將互動功能套用到製程異常分析輔助平台。
+
+### 操作紀錄
+
+- 使用 `getElementById()` 取得 CSV 欄位、資料狀態與分析狀態元素。
+- 監聽 CSV 欄位的 `change` 事件。
+- 使用 `files[0]` 取得使用者選擇的第一個檔案。
+- 選擇 CSV 後，在資料狀態卡片顯示檔案名稱。
+- 將「開始分析」按鈕原本的提示視窗改為頁面狀態更新。
+- 建立具名函式 `updateFileStatus()` 與 `updateAnalysisStatus()`。
+- 使用 `querySelectorAll()` 取得所有狀態卡片。
+- 點擊卡片時加入 `is-selected`，並移除其他卡片的選取狀態。
+- 使用 CSS 顯示目前選取的卡片。
+- 更新 JavaScript 載入版本，避免瀏覽器繼續使用舊快取。
+- 測試 CSV 檔名顯示、分析狀態更新、卡片選取與深色模式。
+
+### 尚未完成
+
+- 實際上傳及讀取 CSV 資料。
+- 檢查 CSV 欄位與資料格式。
+- 呼叫後端 API 執行分析。
+- 顯示模型評估與可疑因子排名。
+- 將分析結果與工程師備註保存至資料庫。
+
+### 學習重點
+
+- DOM 是瀏覽器將 HTML 轉換成可由 JavaScript 操作的網頁物件。
+- 一條完整的前端互動可以整理成「Event → Function → DOM Change → UI Result」。
+- `getElementById()` 適合取得具有唯一 ID 的元素。
+- `querySelectorAll()` 可以取得多個符合 CSS 選擇器的元素。
+- `addEventListener()` 用來監聽 click、change 等使用者事件。
+- `textContent` 可以修改元素顯示的文字。
+- `classList.add()` 與 `classList.remove()` 可以改變元素的 CSS 狀態。
+- 將具名函式交給事件監聽器時不加括號，讓函式在事件發生後才執行。
+- JavaScript 修改 class 後，仍需要 CSS 定義對應樣式，畫面才會呈現變化。
+
+### 遇到的問題與解決方式
+
+- JavaScript 加入 `is-selected` 後，畫面不會自動產生選取效果，因此在 CSS 中新增 `.summary-card.is-selected` 樣式。
+- 為避免瀏覽器載入舊版 JavaScript，將 `app.js` 的版本參數更新為 `v=5`。
+- 使用 `git diff --check` 檢查格式時，發現 `app.js` 檔案結尾多出空白行，移除多餘空白後再重新檢查。
+
+### 本週心得
+
+本週開始使用 JavaScript 控制實際的網頁內容。透過 CSV 欄位、開始分析按鈕及狀態卡片的操作，我理解到網頁互動可以拆成 Event、Function、DOM Change 與 UI Result。先確認事件發生在哪個元素，再追蹤執行的函式及被修改的 DOM，比只逐行閱讀語法更容易掌握整體流程。
+
+我也理解 JavaScript 與 CSS 需要互相配合。JavaScript 負責加入或移除狀態 class，CSS 則決定該狀態呈現的外觀。後續除錯時，可以依序檢查事件是否發生、函式是否執行、DOM 是否改變，以及 CSS 是否有對應樣式。

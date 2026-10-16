@@ -49,6 +49,15 @@ Web Programming 課程實作專案。
 - 完成深色與淺色模式切換
 - 加入頁尾並完成不同螢幕寬度測試
 
+### W5：JavaScript DOM 操作與事件處理
+
+- 使用 JavaScript 監聽 click 與 change 事件
+- 選擇 CSV 後顯示檔案名稱
+- 點擊開始分析後更新分析狀態
+- 建立狀態卡片的單選互動效果
+- 使用 textContent 與 classList 修改 DOM
+- 完成深色模式與新增互動功能測試
+
 ## 專案結構
 
 ```text
