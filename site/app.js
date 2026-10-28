@@ -23,8 +23,26 @@ function updateFileStatus() {  //建立一個函式，名稱為 updateFileStatus
 // 監聽 CSV 檔案輸入欄位的變化
 csvFileInput.addEventListener("change", updateFileStatus);
 
-function updateAnalysisStatus() {  //建立一個函式，名稱為 updateAnalysisStatus
-    analysisStatus.textContent = "分析功能準備中";  //更新顯示的文字為分析中
+async function updateAnalysisStatus() {  //建立一個函式，名稱為 updateAnalysisStatus;async：表示這個函式裡會有需要等待的非同步操作
+    analysisStatus.textContent = "正在測試 API 連線...";  //更新顯示的文字為...
+
+    try {
+        const response = await fetch(  //fetch()：向公開 API 發送 GET Request
+            "https://jsonplaceholder.typicode.com/todos/1"
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();  //response.json()：把 JSON 回應解析成 JavaScript 資料;data：儲存解析完成的資料
+
+        console.log(data);  //將 API 回傳資料顯示在瀏覽器 Console，方便檢查
+        analysisStatus.textContent = `API 連線成功：${data.title}`;   //data.title：取得回傳資料中的 title ;將 title 顯示在網頁的分析狀態卡片
+    } catch (error) {  //catch：接收 try 中發生的錯誤
+        console.error("API 請求失敗：", error);  //將詳細錯誤顯示在 Console，方便開發者除錯
+        analysisStatus.textContent = "API 連線失敗";  //在網頁上顯示簡單的失敗訊息
+    }
 }
 
 startButton.addEventListener("click", updateAnalysisStatus);  //監聽按鈕點擊事件，觸發 updateAnalysisStatus 函式

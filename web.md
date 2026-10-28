@@ -2,10 +2,14 @@
 
 ## Project Milestone
 
+## Project Milestone
+
 - [x] W1：建立 Web 專案及基本靜態網頁
 - [x] W2：完成 Web UI 與語意化 HTML
 - [x] W3：完成 FastAPI 與 Uvicorn 本機部署
-- [ ] W4：待完成
+- [x] W4：完成 CSS 響應式版面與深色模式
+- [x] W5：完成 JavaScript DOM 操作與事件處理
+- [x] W6：完成 Fetch API 與 HTTP 錯誤處理練習
 
 ---
 
@@ -416,3 +420,117 @@ Grid 適合控制側邊欄與主要內容等二維版面；Flexbox 適合控制�
 本週開始使用 JavaScript 控制實際的網頁內容。透過 CSV 欄位、開始分析按鈕及狀態卡片的操作，我理解到網頁互動可以拆成 Event、Function、DOM Change 與 UI Result。先確認事件發生在哪個元素，再追蹤執行的函式及被修改的 DOM，比只逐行閱讀語法更容易掌握整體流程。
 
 我也理解 JavaScript 與 CSS 需要互相配合。JavaScript 負責加入或移除狀態 class，CSS 則決定該狀態呈現的外觀。後續除錯時，可以依序檢查事件是否發生、函式是否執行、DOM 是否改變，以及 CSS 是否有對應樣式。
+
+---
+
+## W6：Fetch API、AJAX 與 HTTP 錯誤處理
+
+### 本週目標
+
+- 理解前端網頁向 API 請求資料的基本流程。
+- 使用 `fetch()` 發送 HTTP Request。
+- 使用 `async` 與 `await` 等待 API 回應。
+- 將 JSON 回應轉換成 JavaScript 可以操作的資料。
+- 處理 API 請求成功與失敗的情況。
+- 使用瀏覽器開發者工具觀察 HTTP Request 與 Response。
+- 認識 Origin、CORS、API Key 與 OAuth 的用途。
+
+### 操作紀錄
+
+- 將 `updateAnalysisStatus()` 改成非同步函式。
+- 點擊「開始分析」後，先顯示「正在測試 API 連線」。
+- 使用 `fetch()` 向 JSONPlaceholder 公開 API 發送 GET Request。
+- 使用 `await` 等待 API 回傳結果。
+- 使用 `response.ok` 判斷 HTTP Request 是否成功。
+- 使用 `response.status` 取得 HTTP 狀態碼。
+- 使用 `response.json()` 將 JSON 回應解析成 JavaScript 資料。
+- 使用 `data.title` 取得 API 回傳資料中的標題。
+- 將 API 回傳結果顯示在分析狀態卡片。
+- 使用 `console.log()` 查看解析後的 JSON 資料。
+- 使用 `try...catch` 處理請求失敗的情況。
+- 使用 `console.error()` 在 Console 顯示詳細錯誤。
+- 使用 Network 確認 GET Request 與 HTTP 200 回應。
+- 暫時將網址改成 `/not-found-api`，確認 HTTP 404 會進入錯誤處理。
+- 測試完成後，將網址恢復成正確的公開 API。
+- 將 JavaScript 載入版本更新為 `v=6`，避免瀏覽器使用舊快取。
+- 觀察 Request Header 的 Origin 與 CORS 相關回應標頭。
+
+### 尚未完成
+
+- 實際將 CSV 檔案上傳至後端。
+- 建立專案自己的分析 API。
+- 使用 POST Request 傳送分析條件與工程師備註。
+- 從後端取得真正的資料品質檢查及分析結果。
+- 顯示模型評估與可疑因子排名。
+- 將分析結果保存至資料庫。
+- 實作需要 API Key 或 OAuth 的身分驗證功能。
+
+### 學習重點
+
+#### Fetch API 與 AJAX
+
+`fetch()` 可以讓 JavaScript 在不重新載入整個網頁的情況下，向 API 請求資料並更新部分畫面。這種非同步交換資料與更新頁面的方式屬於 AJAX 的應用。
+
+目前沒有指定 `method`，因此 `fetch()` 預設使用 GET Request。
+
+#### async 與 await
+
+`async` 表示函式中會執行需要等待的非同步操作；`await` 會等待 Promise 完成，再繼續執行下一行程式。
+
+使用 `await` 的函式必須加上 `async`。中文說明只是註解，真正控制程式行為的是程式碼中的 `async` 與 `await`。
+
+#### Response 與 JSON
+
+`fetch()` 首先取得的是完整的 HTTP Response，並不是可以直接使用的資料。
+
+需要再執行 `response.json()`，才能將 JSON 內容解析成 JavaScript 物件，之後才能使用 `data.title` 等方式取得其中的欄位。
+
+#### HTTP 狀態與錯誤處理
+
+HTTP 200 表示請求成功，HTTP 404 表示找不到指定資源。
+
+`fetch()` 收到 404 時不一定會自動進入 `catch`，因此需要使用 `response.ok` 主動檢查。若回應失敗，就使用 `throw` 產生錯誤，再交給 `catch` 統一處理。
+
+#### Origin 與 CORS
+
+Origin 由通訊協定、網域名稱及連接埠組成。前端網頁與公開 API 使用不同 Origin 時，屬於跨來源請求。
+
+瀏覽器會在 Request Header 中帶上目前網頁的 Origin，而 API 伺服器透過 CORS 回應標頭決定是否允許該網頁讀取回應。
+
+#### API Key 與 OAuth
+
+API Key 常用來識別呼叫 API 的應用程式，OAuth 則常用於取得使用者授權。
+
+機密的 API Key 不應直接寫在前端 JavaScript 或上傳到公開的 GitHub Repository。若後續需要使用機密金鑰，應由後端安全保存與呼叫。
+
+### 遇到的問題與解決方式
+
+#### 修改 JavaScript 後畫面沒有更新
+
+瀏覽器可能繼續使用先前的 JavaScript 快取，因此將載入路徑更新為：
+
+```html
+<script src="./app.js?v=6"></script>
+```
+
+版本參數不會改變 JavaScript 的程式內容，但能讓瀏覽器將它視為新版資源並重新下載。
+
+#### 如何確認錯誤處理真的有效
+
+將請求網址暫時改成 `/not-found-api`，在 Network 中確認收到 HTTP 404，網頁也顯示「API 連線失敗」。
+
+確認 `response.ok`、`throw` 與 `catch` 都有正常運作後，再將網址恢復為正確的公開 API。
+
+#### CORS 中出現自己的網頁網址
+
+在開發者工具中看到 `http://localhost:7777`，代表瀏覽器正在說明這次請求是從目前的網頁 Origin 發出。
+
+Request Header 的 `Origin` 代表請求來源；Response Header 的 `Access-Control-Allow-Origin` 則代表 API 允許哪一個來源讀取回應，兩者用途不同。
+
+### 本週心得
+
+本週將原本只會修改網頁文字的「開始分析」按鈕，改成實際向公開 API 請求資料。我理解前端與 API 之間的流程可以整理成「Event → async Function → fetch → HTTP Response → JSON → DOM Change」。
+
+透過 Console 可以查看 JavaScript 解析後的資料，透過 Network 則可以查看請求網址、HTTP Method、狀態碼及標頭。兩者提供的資訊不同，除錯時需要搭配使用。
+
+這次也刻意使用不存在的網址測試 HTTP 404，確認成功與失敗流程都有被處理。公開 API 目前只是用來練習資料請求，尚未執行真正的製程異常分析；後續會再將它替換成專案自己的 FastAPI 分析端點。

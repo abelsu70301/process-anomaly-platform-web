@@ -58,6 +58,18 @@ Web Programming 課程實作專案。
 - 使用 textContent 與 classList 修改 DOM
 - 完成深色模式與新增互動功能測試
 
+### W6：Fetch API、AJAX 與 HTTP 錯誤處理
+
+- 使用 `async` 與 `await` 處理非同步操作
+- 使用 `fetch()` 向公開 API 發送 GET Request
+- 使用 `response.ok` 檢查 HTTP 回應狀態
+- 使用 `response.json()` 解析 JSON 資料
+- 將 API 回傳內容顯示於分析狀態卡片
+- 使用 `try...catch` 處理連線及 HTTP 錯誤
+- 使用瀏覽器 Console 與 Network 檢查 API 回應
+- 測試 HTTP 200 與 404 的不同處理結果
+- 認識 Origin 與 CORS 的基本作用
+
 ## 專案結構
 
 ```text
