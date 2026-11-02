@@ -10,6 +10,7 @@
 - [x] W4：完成 CSS 響應式版面與深色模式
 - [x] W5：完成 JavaScript DOM 操作與事件處理
 - [x] W6：完成 Fetch API 與 HTTP 錯誤處理練習
+- [x] W7：完成專案摘要 API 與卡片詳情互動
 
 ---
 
@@ -534,3 +535,173 @@ Request Header 的 `Origin` 代表請求來源；Response Header 的 `Access-Con
 透過 Console 可以查看 JavaScript 解析後的資料，透過 Network 則可以查看請求網址、HTTP Method、狀態碼及標頭。兩者提供的資訊不同，除錯時需要搭配使用。
 
 這次也刻意使用不存在的網址測試 HTTP 404，確認成功與失敗流程都有被處理。公開 API 目前只是用來練習資料請求，尚未執行真正的製程異常分析；後續會再將它替換成專案自己的 FastAPI 分析端點。
+
+---
+
+## W7：Fetch API／AJAX 串接專案 API 2
+
+### 本週目標
+
+- 熟悉 Event、Function、Fetch、HTTP/API、JSON 與 DOM 的完整流程。
+- 建立屬於目前專案的 FastAPI API。
+- 將資料請求、JSON 解析及畫面更新拆成不同函式。
+- 使用同一套函式處理多筆摘要卡片資料。
+- 使用路徑參數取得不同卡片的詳細說明。
+- 處理載入中、成功、HTTP 404 及前端錯誤狀態。
+- 使用 Console 與 Network 判斷錯誤發生的層級。
+
+### 操作紀錄
+
+- 在 `server.py` 建立 `/api/summary` GET API。
+- 將 API 路由放在 `app.mount("/")` 前面，避免靜態檔案服務先攔截 API 請求。
+- 由 API 回傳資料狀態、分析狀態及歷史紀錄三筆 JSON。
+- 在歷史紀錄文字加入 `id="historyStatus"`。
+- 建立共用的 `readJson()`，統一檢查 HTTP 狀態並解析 JSON。
+- 建立 `renderSummaryCards()`，依照 API 的 `element_id` 更新對應卡片。
+- 建立 `loadSummary()`，向 `/api/summary` 取得摘要資料。
+- 使用 `DOMContentLoaded`，在 HTML 載入完成後自動執行 `loadSummary()`。
+- 使用 Console 確認摘要 JSON，並在 Network 確認 GET Request 與 HTTP 200。
+- 建立摘要詳情顯示區。
+- 在 FastAPI 建立 `/api/summary/{element_id}` 動態詳情 API。
+- 使用 `SUMMARY_DETAILS` dictionary 保存三張卡片的詳細說明。
+- 使用 `HTTPException`，在找不到資料時回傳 HTTP 404。
+- 建立 `renderSummaryDetail()` 更新詳情標題與內容。
+- 建立 `loadSummaryDetail()`，依照被點擊卡片的 ID 請求詳細資料。
+- 擴充摘要卡片的 click 事件，保留選取樣式並載入 API 詳情。
+- 加入摘要詳情區的 CSS，支援淺色及深色模式。
+- 使用不存在的 `notFound` 測試前端錯誤處理。
+- 將 JavaScript 快取版本更新為 `v=9`。
+
+### 尚未完成
+
+- 實際將 CSV 檔案上傳至後端。
+- 讀取及檢查 CSV 欄位與內容。
+- 建立真正的資料品質檢查 API。
+- 執行異常分類及模型評估。
+- 顯示可疑因子排名。
+- 將分析紀錄保存至資料庫。
+- 從資料庫取得真正的歷史紀錄。
+- 實作登入與使用者權限。
+
+### 學習重點
+
+#### 專案 API
+
+W06 使用公開 API 練習前端請求；W07 開始在目前的 FastAPI 應用程式建立專案自己的 API。
+
+`/api/summary` 負責回傳三張摘要卡片的初始資料；目前資料仍為程式中設定的測試內容，尚未連接資料庫或分析模組。
+
+#### API 路由與靜態檔案順序
+
+`app.mount("/")` 會接收根路徑下的靜態檔案請求，因此 `/api/summary` 等 API 路由需要寫在 `app.mount()` 前面。
+
+如果路由順序錯誤，請求可能先被 StaticFiles 處理，而無法進入預期的 API 函式。
+
+#### 共用函式與 Reuse
+
+`readJson()` 統一負責：
+
+- 檢查 `response.ok`
+- 取得 HTTP 狀態碼
+- 解析 JSON
+- 將資料傳回呼叫端
+
+W06 的公開 API 與 W07 的專案 API 都能共用它，不需要在每個 Fetch 函式中重寫相同程式。
+
+`renderSummaryCards()` 也能逐筆處理三張卡片，依照 `element_id` 尋找 DOM 元素並更新內容。
+
+#### 路徑參數
+
+`/api/summary/{element_id}` 中的 `{element_id}` 是路徑參數。
+
+例如：
+
+- `/api/summary/fileStatus`
+- `/api/summary/analysisStatus`
+- `/api/summary/historyStatus`
+
+三個網址可以使用同一個 Python 函式處理，再依照不同的 `element_id` 回傳對應資料。
+
+#### Same-Origin
+
+前端網頁和 `/api/summary` 都由同一個 FastAPI 網站提供，因此屬於 Same-Origin 請求。
+
+相較於 W06 請求外部公開 API，這次一般不需要額外處理跨來源 CORS 問題。
+
+#### Event 到 DOM 的完整流程
+
+頁面載入流程：
+
+```text
+DOMContentLoaded
+→ loadSummary()
+→ fetch()
+→ readJson()
+→ renderSummaryCards()
+→ 更新 DOM
+```
+
+卡片點擊流程：
+
+```text
+click
+→ loadSummaryDetail()
+→ fetch()
+→ readJson()
+→ renderSummaryDetail()
+→ 更新 DOM
+```
+
+### 遇到的問題與解決方式
+
+#### 靜態網站可能攔截 API 路由
+
+目前網站使用：
+
+```python
+app.mount("/", StaticFiles(...))
+```
+
+由於掛載位置是根路徑，所以新增的 API 必須放在 `app.mount()` 前面。調整路由順序後，可以正常透過 `/api/summary` 取得 JSON。
+
+#### HTTP 404 測試
+
+使用不存在的：
+
+```text
+/api/summary/notFound
+```
+
+測試動態詳情 API。
+
+FastAPI 使用 `HTTPException` 回傳 HTTP 404，前端的 `readJson()` 發現 `response.ok` 為 false 後產生錯誤，再由 `loadSummaryDetail()` 的 `catch` 顯示「載入失敗」。
+
+#### HTTP 200 但畫面仍顯示失敗
+
+測試時，Network 顯示 `/api/summary/fileStatus` 為 HTTP 200，但畫面仍進入錯誤處理。
+
+Console 顯示：
+
+```text
+RangeError: Maximum call stack size exceeded
+```
+
+追蹤錯誤堆疊後，發現 `readJson()` 內部誤寫成再次呼叫 `readJson(response)`，使函式不斷呼叫自己，形成無限遞迴。
+
+將它改回：
+
+```javascript
+const data = await response.json();
+```
+
+並更新 JavaScript 快取版本後，卡片詳情恢復正常。
+
+這次除錯顯示 HTTP 200 只代表伺服器成功回應，不代表後續的 JSON 解析及 DOM 更新一定成功。需要搭配 Network、Console 與錯誤堆疊判斷真正的錯誤層級。
+
+### 本週心得
+
+本週將 W06 的單一公開 API 測試延伸成專案自己的前後端資料流程。我理解 API 不只是提供一個網址，還需要設計回傳格式、路徑參數、HTTP 狀態及錯誤處理。
+
+透過 `readJson()`、`renderSummaryCards()`、`loadSummary()`、`renderSummaryDetail()` 和 `loadSummaryDetail()` 的分工，我開始理解資料請求、資料解析與畫面更新應該分開管理。這樣不但能重複使用函式，也比較容易判斷錯誤發生在哪一層。
+
+本週也遇到 HTTP 200 但前端仍失敗的情況。最後透過 Console 的 `Maximum call stack size exceeded` 找到無限遞迴問題，讓我理解除錯不能只查看 HTTP 狀態，也需要檢查 JavaScript 的實際執行流程。

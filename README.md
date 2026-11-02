@@ -70,6 +70,19 @@ Web Programming 課程實作專案。
 - 測試 HTTP 200 與 404 的不同處理結果
 - 認識 Origin 與 CORS 的基本作用
 
+### W7：專案 API 與動態摘要詳情
+
+- 建立專案自己的 `/api/summary` 摘要 API
+- 使用 FastAPI 回傳三張狀態卡片的 JSON
+- 頁面載入完成後自動取得摘要資料
+- 建立共用的 HTTP 狀態檢查與 JSON 解析函式
+- 使用同一套 Render 邏輯更新多張摘要卡片
+- 建立 `/api/summary/{element_id}` 動態詳情 API
+- 使用路徑參數取得不同卡片的詳細說明
+- 點擊摘要卡片後顯示對應的 API 詳情
+- 使用 `HTTPException` 處理找不到資料的 404 錯誤
+- 完成載入中、成功與失敗畫面測試
+
 ## 專案結構
 
 ```text

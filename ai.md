@@ -309,3 +309,92 @@ API 回應中的 `Access-Control-Allow-Origin` 才表示伺服器允許哪一個
 - 發生錯誤時，網頁會顯示「API 連線失敗」。
 - 恢復正確網址後，API 連線重新成功。
 - 深色模式、CSV 檔名顯示及卡片選取功能仍能正常使用。
+
+---
+
+---
+
+## W7：專案 API、動態路徑與卡片詳情
+
+### 1. 如何將老師的 API 範例套用到目前專案
+
+**討論內容：**
+
+老師教材使用 `/api/root`、Department、Course 和 Member 等資料建立導覽選單及 Dashboard Cards，但目前專案是製程異常分析輔助平台，沒有相同的課程資料。
+
+**討論結果：**
+
+保留教材的核心流程，將它調整成目前專案可理解的內容：
+
+- `/api/root` 改為 `/api/summary`。
+- Dashboard Cards 對應資料狀態、分析狀態及歷史紀錄。
+- `/api/root/co/{cid}` 的概念改為 `/api/summary/{element_id}`。
+- 點擊卡片後，再向 API 取得對應的詳細說明。
+
+目前回傳的是測試狀態，尚未假裝已經完成 CSV 分析或資料庫連線。
+
+### 2. API 為什麼要放在 app.mount 前面
+
+**討論內容：**
+
+目前 `server.py` 使用 `app.mount("/")` 提供整個 `site` 資料夾，因此討論新的 API 應該放在哪個位置。
+
+**討論結果：**
+
+由於 StaticFiles 掛載在根路徑，可能先接收後面的請求，所以 `/api/summary` 和 `/api/summary/{element_id}` 必須宣告在 `app.mount()` 前面。
+
+這也讓我理解 FastAPI 不只需要正確的網址，路由宣告順序也可能影響請求由哪一個處理程序接收。
+
+### 3. 如何讓三張卡片共用同一套程式
+
+**討論內容：**
+
+如果分別替資料狀態、分析狀態及歷史紀錄撰寫程式，會產生許多重複內容。
+
+**討論結果：**
+
+API 為每筆卡片資料提供 `element_id`、`name` 和 `value`。前端使用 `forEach()` 逐筆處理，並透過 `getElementById()` 找到對應元素。
+
+另外建立共用的 `readJson()`，讓公開 API、摘要 API 及詳情 API 都能使用相同的 HTTP 檢查與 JSON 解析流程。
+
+### 4. 路徑參數與 HTTP 404
+
+**討論內容：**
+
+老師教材中的 `{cid}` 會依照使用者點擊項目改變，因此討論如何在目前專案練習相同概念。
+
+**討論結果：**
+
+建立：
+
+`/api/summary/{element_id}`
+
+點擊不同卡片時，會分別帶入 `fileStatus`、`analysisStatus` 或 `historyStatus`。
+
+如果傳入不存在的值，FastAPI 使用 `HTTPException` 回傳 404。前端再透過 `readJson()`、`throw` 及 `catch` 顯示失敗狀態。
+
+### 5. 為什麼 HTTP 200 仍然顯示載入失敗
+
+**討論內容：**
+
+測試 `/api/summary/fileStatus` 時，Network 顯示 HTTP 200，但網頁詳情區仍顯示「載入失敗」。
+
+**排查過程：**
+
+先確認：
+
+- Request URL 正確。
+- API 狀態為 HTTP 200。
+- `loadSummaryDetail()` 與 `renderSummaryDetail()` 的結構沒有明顯錯誤。
+- Console 顯示 `RangeError: Maximum call stack size exceeded`。
+- 錯誤堆疊重複出現 `readJson()`。
+
+**討論結果：**
+
+`readJson()` 內部誤寫成再次呼叫自己，造成無限遞迴：
+
+```text
+readJson()
+→ readJson()
+→ readJson()
+→ 呼叫堆疊用盡

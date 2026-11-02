@@ -122,3 +122,15 @@ footer p {
         align-items: start;  /*兩個區塊都從上方開始排列*/
     }
 }
+
+.summary-detail {
+    margin-top: 16px;
+    padding: 16px;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}  /*摘要詳情區：設定上方距離、內距、背景顏色、邊框與圓角*/
+
+.summary-detail h3 {
+    margin-top: 0;
+}  /*移除詳情標題上方的預設外距*/

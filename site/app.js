@@ -9,6 +9,95 @@ const csvFileInput = document.getElementById("csvFile");  //csvFileInput：代�
 const fileStatus = document.getElementById("fileStatus");  //fileStatus：代表顯示資料狀態的 <p>
 const analysisStatus = document.getElementById("analysisStatus");  //analysisStatus：代表顯示分析狀態的 <p>
 const summaryCards = document.querySelectorAll(".summary-card");  //summaryCards：代表所有的 summary-card 元素，querySelectorAll() 會回傳一個陣列
+const summaryDetailTitle = document.getElementById("summaryDetailTitle");  //取得摘要詳情的標題元素
+const summaryDetailText = document.getElementById("summaryDetailText");  //取得摘要詳情的說明文字元素
+
+async function readJson(response) {  //readJson：統一檢查 HTTP 狀態並解析 JSON
+
+    if (!response.ok) {  //HTTP 狀態不是 200~299，表示請求失敗
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+   const data = await response.json();  //使用共用函式檢查 HTTP 狀態並解析 JSON
+
+    return data;  //把解析完成的資料交回呼叫這個函式的地方
+}
+
+
+function renderSummaryCards(cards) {  //renderSummaryCards：將 API 回傳的卡片資料顯示到網頁
+
+    cards.forEach(function (card) {  //forEach：逐筆處理 cards 陣列中的卡片資料
+
+        const valueElement = document.getElementById(card.element_id);  //使用 API 提供的 element_id 找到對應的 <p>
+
+        if (!valueElement) {  //如果 HTML 中找不到對應元素，就記錄警告並跳過這一筆
+
+            console.warn(`找不到元素：${card.element_id}`);
+            return;
+        }
+
+        const cardElement = valueElement.closest(".summary-card");  //closest()：從目前元素往外尋找最近的 summary-card
+
+        const titleElement = cardElement.querySelector("h3");  //在該張卡片中尋找 <h3> 標題
+
+        titleElement.textContent = card.name;  //使用 API 的 name 更新卡片標題
+
+        valueElement.textContent = card.value;  //使用 API 的 value 更新卡片內容
+    });
+}
+
+function renderSummaryDetail(detail) {  //renderSummaryDetail：將詳細資料 API 的 JSON 顯示到網頁
+
+    summaryDetailTitle.textContent = detail.title;  //使用 API 回傳的 title 更新詳情標題
+
+    summaryDetailText.textContent = detail.description;  //使用 API 回傳的 description 更新詳情內容
+
+}
+
+async function loadSummaryDetail(elementId) {  //loadSummaryDetail：依照卡片的 elementId 取得詳細資料
+
+    summaryDetailTitle.textContent = "摘要詳情";
+    summaryDetailText.textContent = "正在載入詳細資料...";
+    //請求開始前先顯示載入狀態
+    try {
+        const response = await fetch(
+            `./api/summary/${encodeURIComponent(elementId)}`
+        );  //將 elementId 放進 API 網址; encodeURIComponent() : 避免特殊字元破壞網址格式
+
+        const detail = await readJson(response);  //使用共用的 readJson() 檢查 HTTP 並解析 JSON
+
+        console.log("摘要詳情：", detail);  //在 Console 顯示 API 回傳資料
+
+        renderSummaryDetail(detail);  //將詳細資料交給 Render 函式更新 DOM
+
+    } catch (error) {
+        console.error("摘要詳情載入失敗：", error);  //在 Console 顯示詳細錯誤
+
+        summaryDetailTitle.textContent = "載入失敗";
+        summaryDetailText.textContent = "無法取得摘要詳情，請稍後再試。";  //在畫面上顯示簡單的錯誤訊息
+    }
+}
+
+async function loadSummary() {  //loadSummary：向後端取得摘要資料，並更新三張卡片
+
+    try {  //try：執行可能發生錯誤的 API 請求
+
+        const response = await fetch("./api/summary");  //向同一個 FastAPI 網站的 /api/summary 發送 GET Request
+        //沒有指定 method 時，預設使用 GET
+
+        const data = await readJson(response);  //呼叫 readJson() 檢查 HTTP 狀態並解析 JSON
+
+        console.log("摘要資料：", data);  //在 Console 顯示完整資料，方便確認 API 回傳內容
+
+        renderSummaryCards(data.cards);  //取出 JSON 中的 cards 陣列，交給 Render 函式更新畫面
+    } catch (error) {  //catch：接收 fetch、HTTP 或 JSON 解析過程中的錯誤
+
+        console.error("摘要資料載入失敗：", error);  //在 Console 顯示詳細錯誤
+
+        analysisStatus.textContent = "摘要資料載入失敗";  //在畫面上顯示簡單的錯誤訊息
+    }
+}
+
 
 function updateFileStatus() {  //建立一個函式，名稱為 updateFileStatus
     const selectedFile = csvFileInput.files[0];  //取得使用者選擇的第一個檔案
@@ -74,5 +163,17 @@ function selectSummaryCard(selectedCard) {  //建立一個函式，名稱為 sel
 summaryCards.forEach(function (card) {  //對每個 summary-card 元素執行以下函式
     card.addEventListener("click", function () {  //監聽每個卡片的點擊事件
         selectSummaryCard(card);  //呼叫 selectSummaryCard 函式，傳入被點擊的卡片
+        const statusElement = card.querySelector("p");  //取得目前卡片中 <p> 元素，其 id 對應 API 的 element_id
+
+        if (!statusElement) {  //若卡片中找不到 <p> 元素，顯示警告並停止這次操作
+
+            console.warn("卡片中找不到狀態元素");
+            return;
+        }
+
+        loadSummaryDetail(statusElement.id);  //使用 <p> 元素的 id 請求該卡片的詳細資料
     });
 });
+
+document.addEventListener("DOMContentLoaded", loadSummary);  //DOMContentLoaded：HTML 結構載入完成時觸發
+//這個事件發生後，才執行 loadSummary 取得摘要資料
