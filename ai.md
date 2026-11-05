@@ -312,8 +312,6 @@ API 回應中的 `Access-Control-Allow-Origin` 才表示伺服器允許哪一個
 
 ---
 
----
-
 ## W7：專案 API、動態路徑與卡片詳情
 
 ### 1. 如何將老師的 API 範例套用到目前專案
@@ -398,3 +396,142 @@ readJson()
 → readJson()
 → readJson()
 → 呼叫堆疊用盡
+```
+
+---
+
+## W8：表單處理、前後端驗證與 XSS 防護
+
+### 1. 為什麼要監聽表單 submit，而不是只監聽按鈕 click
+
+**討論內容：**
+
+原本的「開始分析」按鈕使用點擊事件執行功能。進入表單處理後，按鈕改為 `type="submit"`，因此討論原本的按鈕事件是否還需要保留。
+
+**討論結果：**
+
+改為監聽整個表單的 `submit` 事件，並使用：
+
+```javascript
+event.preventDefault();
+```
+
+阻止瀏覽器重新整理頁面。
+
+監聽 `submit` 不只能處理滑鼠點擊，也可以處理使用鍵盤提交表單的情況，因此比只監聽按鈕的 `click` 更完整。
+
+### 2. 為什麼前端驗證後，後端還要再驗證
+
+**討論內容：**
+
+前端已經檢查 CSV 副檔名及工程師備註長度，因此討論是否還需要在 FastAPI 重複驗證。
+
+**討論結果：**
+
+前端驗證主要是讓使用者立即知道輸入錯誤，但不能視為安全機制。
+
+使用者可能關閉 JavaScript、修改網頁程式，或不經過網頁直接呼叫 API，因此後端仍然必須使用 Pydantic 與自訂規則驗證資料。
+
+本週形成的驗證流程為：
+
+```text
+HTML 內建驗證
+→ JavaScript 前端驗證
+→ FastAPI 與 Pydantic 後端驗證
+→ 回傳驗證結果
+```
+
+### 3. updateAnalysisStatus() 是否還要保留
+
+**討論內容：**
+
+表單已經有 `submit` 事件，因此討論 `updateAnalysisStatus()` 是否可以刪除。
+
+**討論結果：**
+
+保留 `updateAnalysisStatus()`，但改變它的工作內容。
+
+表單事件負責：
+
+- 阻止頁面重新整理。
+- 取得檔案與工程師備註。
+- 執行前端驗證。
+
+`updateAnalysisStatus()` 負責：
+
+- 發送 POST Request。
+- 等待後端回應。
+- 處理 HTTP 錯誤。
+- 更新分析狀態卡片。
+
+這樣可以將表單驗證與 API 請求分開，避免所有程式都擠在同一個事件函式中。
+
+### 4. 為什麼 API 成功後出現 undefined
+
+**討論內容：**
+
+後端已經成功回傳資料，但畫面顯示：
+
+```text
+API 連線成功：undefined
+```
+
+**排查過程：**
+
+檢查 `updateAnalysisStatus()` 後發現，新程式已經使用：
+
+```javascript
+analysisStatus.textContent = data.message;
+```
+
+但下面仍保留 W06 公開 API 測試時使用的舊程式：
+
+```javascript
+analysisStatus.textContent = `API 連線成功：${data.title}`;
+```
+
+W08 後端回傳的 JSON 沒有 `title` 欄位，所以 `data.title` 的結果是 `undefined`。而且舊程式位於後面，會覆蓋前面正確設定的文字。
+
+**討論結果：**
+
+刪除讀取 `data.title` 的舊程式，只保留：
+
+```javascript
+analysisStatus.textContent = data.message;
+```
+
+修正後，畫面可以正確顯示「後端驗證成功」。
+
+### 5. 為什麼要使用 textContent 顯示備註
+
+**討論內容：**
+
+工程師備註是使用者可以自由輸入的內容，因此討論將它顯示到網頁時可能產生的安全問題。
+
+使用以下內容測試：
+
+```html
+<img src=x onerror=alert('XSS')>
+```
+
+**討論結果：**
+
+網頁使用 `textContent` 顯示備註，所以輸入內容只會被當成普通文字，不會被瀏覽器解讀成 HTML，也不會執行 `onerror`。
+
+如果直接將使用者輸入放入 `innerHTML`，瀏覽器可能解析其中的標籤或事件，增加 XSS 風險。
+
+因此沒有必要解析 HTML 時，應優先使用 `textContent`。
+
+### 6. 如何判斷 HTTP 400、422 與 200
+
+**討論內容：**
+
+使用 FastAPI `/docs` 測試後端時，分別得到 HTTP 200、400 與 422，因此討論這些狀態的差異。
+
+**討論結果：**
+
+- HTTP 200：資料格式及專案驗證規則都通過。
+- HTTP 400：資料結構可以被接收，但內容不符合專案規則，例如不是 CSV 檔名。
+- HTTP 422：送出的 JSON 缺少必要欄位，或不符合 Pydantic 模型定義。
+
+透過 `/docs` 分別測試正確資料、錯誤副檔名及缺少 `file_name`，可以確認後端驗證不是只處理成功情況，也能正確回報不同類型的輸入錯誤。

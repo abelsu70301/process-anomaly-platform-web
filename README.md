@@ -83,6 +83,15 @@ Web Programming 課程實作專案。
 - 使用 `HTTPException` 處理找不到資料的 404 錯誤
 - 完成載入中、成功與失敗畫面測試
 
+### W8：表單處理與前後端驗證
+
+- 將分析按鈕改為表單提交流程
+- 使用 JavaScript 驗證 CSV 檔案與工程師備註
+- 建立 `POST /api/analysis/validate` API
+- 使用 Pydantic 進行後端資料驗證
+- 使用 `textContent` 安全顯示使用者輸入
+- 測試 HTTP 200、400 與 422 回應
+
 ## 專案結構
 
 ```text

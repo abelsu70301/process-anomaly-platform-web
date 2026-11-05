@@ -11,6 +11,9 @@ const analysisStatus = document.getElementById("analysisStatus");  //analysisSta
 const summaryCards = document.querySelectorAll(".summary-card");  //summaryCards：代表所有的 summary-card 元素，querySelectorAll() 會回傳一個陣列
 const summaryDetailTitle = document.getElementById("summaryDetailTitle");  //取得摘要詳情的標題元素
 const summaryDetailText = document.getElementById("summaryDetailText");  //取得摘要詳情的說明文字元素
+const analysisForm = document.getElementById("analysisForm");  //取得分析表單元素
+const formMessage = document.getElementById("formMessage");  //取得表單訊息顯示元素
+const engineerNoteInput = document.getElementById("engineerNote");  //取得工程師備註輸入欄位元素
 
 async function readJson(response) {  //readJson：統一檢查 HTTP 狀態並解析 JSON
 
@@ -112,29 +115,60 @@ function updateFileStatus() {  //建立一個函式，名稱為 updateFileStatus
 // 監聽 CSV 檔案輸入欄位的變化
 csvFileInput.addEventListener("change", updateFileStatus);
 
-async function updateAnalysisStatus() {  //建立一個函式，名稱為 updateAnalysisStatus;async：表示這個函式裡會有需要等待的非同步操作
-    analysisStatus.textContent = "正在測試 API 連線...";  //更新顯示的文字為...
+async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一個函式，名稱為 updateAnalysisStatus;async：表示這個函式裡會有需要等待的非同步操作
+    analysisStatus.textContent = "正在進行後端驗證...";  //更新顯示的文字為...
 
     try {
-        const response = await fetch(  //fetch()：向公開 API 發送 GET Request
-            "https://jsonplaceholder.typicode.com/todos/1"
-        );
-
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        const response = await fetch("./api/analysis/validate", {  //fetch()：向公開 API 發送 GET Request
+            method: "POST",  //指定使用 POST 方法
+            headers: {
+                "Content-Type": "application/json",  //指定傳送的資料格式為 JSON
+            },
+            body: JSON.stringify({  //將 JavaScript 物件轉換成 JSON 字串
+                file_name: selectedFile.name,  //將使用者選擇的檔案名稱傳給後端
+                engineer_note: engineerNote,  //將工程師備註傳給後端
+            }),
+        });
 
         const data = await response.json();  //response.json()：把 JSON 回應解析成 JavaScript 資料;data：儲存解析完成的資料
 
-        console.log(data);  //將 API 回傳資料顯示在瀏覽器 Console，方便檢查
-        analysisStatus.textContent = `API 連線成功：${data.title}`;   //data.title：取得回傳資料中的 title ;將 title 顯示在網頁的分析狀態卡片
+        if (!response.ok) {
+            throw new Error(data.detail || `HTTP ${response.status}`);  //如果 HTTP 狀態不是 200~299，拋出錯誤，並使用 API 回傳的 detail 訊息
+        }
+
+        analysisStatus.textContent = data.message;  //data.message：取得回傳資料中的 message ;將 message 顯示在網頁的分析狀態卡片
+        console.log("後端驗證結果：", data);  //將 API 回傳資料顯示在瀏覽器 Console，方便檢查
+
     } catch (error) {  //catch：接收 try 中發生的錯誤
-        console.error("API 請求失敗：", error);  //將詳細錯誤顯示在 Console，方便開發者除錯
-        analysisStatus.textContent = "API 連線失敗";  //在網頁上顯示簡單的失敗訊息
+        console.error("後端驗證失敗：", error);  //將詳細錯誤顯示在 Console，方便開發者除錯
+        analysisStatus.textContent = `驗證失敗：${error.message}`;  //在網頁上顯示簡單的失敗訊息
     }
 }
 
-startButton.addEventListener("click", updateAnalysisStatus);  //監聽按鈕點擊事件，觸發 updateAnalysisStatus 函式
+analysisForm.addEventListener("submit", function (event) {  //監聽分析表單的提交事件
+    event.preventDefault();  //阻止瀏覽器預設表單提交行為並重新整理頁面
+
+    const selectedFile = csvFileInput.files[0];  //取得使用者選擇的第一個檔案
+
+    if (!selectedFile.name.toLowerCase().endsWith(".csv")) {  //如果使用者沒有選擇 CSV 檔案
+        formMessage.textContent = "檔案格式錯誤，請選擇 CSV 檔案";  //在網頁上顯示錯誤訊息
+        return;
+    }
+
+    const engineerNote = engineerNoteInput.value.trim();  //value:取得輸入內容  //trim()：移除文字前後的空白  //取得工程師備註欄位的值，並去除前後空白
+
+    if (engineerNote.length > 0 && engineerNote.length < 5) {  //如果工程師備註欄位有值且長度小於 5
+        formMessage.textContent = "工程師備註若有填寫至少需要 5 個字元";  //在網頁上顯示錯誤訊息
+        return;
+    }
+
+    if(engineerNote) {
+        formMessage.textContent = `資料集驗證成功，工程師備註：${engineerNote}`;  //在網頁上顯示工程師備註
+    } else {
+        formMessage.textContent = "資料集驗證成功，未填寫工程師備註";  //在網頁上顯示未填寫工程師備註
+    }
+    updateAnalysisStatus(selectedFile, engineerNote);  //呼叫函式，負責在表單驗證成功後，繼續執行原本的 API 測試與更新「分析狀態」卡片
+});
 
 const themeButton = document.getElementById("themeButton");  //getElementById("themeButton")：找到剛建立的深色模式按鈕
 

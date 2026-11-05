@@ -1,7 +1,12 @@
 from fastapi import FastAPI, HTTPException  #FastAPI：建立 Web 應用程式;HTTPException：讓API可以回傳404等HTTP錯誤
 from fastapi.staticfiles import StaticFiles  #StaticFiles：提供 HTML、CSS、JavaScript 等靜態檔案
+from pydantic import BaseModel, Field  #BaseModel：建立資料模型，定義 API 接收的 JSON 資料格式;Field：設定欄位屬性長度等驗證規則
 
 app = FastAPI()  #建立名為 app 的應用程式物件
+
+class AnalysisRequest(BaseModel):  #建立名為 AnalysisRequest 的資料模型，繼承自 BaseModel
+    file_name: str = Field(min_length=5)  #file_name 欄位，字串型態，最短 5 個字元
+    engineer_note: str = Field(default="", max_length=200)  #engineer_note 欄位，字串型態，預設空字串，最長 200 個字元
 
 SUMMARY_DETAILS = {  #三筆資料
     "fileStatus": {
@@ -55,6 +60,28 @@ def get_summary_detail(element_id: str):  # element_id: str 表示接收到的 e
         )  #回傳 HTTP 404，讓前端知道找不到資料
 
     return detail  #找到資料時，自動轉換成 JSON
+
+@app.post("/api/analysis/validate")
+def validate_analysis(request: AnalysisRequest):  # 後端不能相信前端驗證，因此再次確認副檔名  #request: AnalysisRequest：要求收到的 JSON 符合剛建立的 Pydantic 模型
+    if not request.file_name.lower().endswith(".csv"):  #.strip()：Python 版本的去除前後空白
+        raise HTTPException(
+            status_code=400,  #資料不符合專案規則時，回傳 400 Bad Request
+            detail="檔案格式錯誤，僅接受 CSV 檔案"
+        )
+
+    engineer_note = request.engineer_note.strip()  # 備註可以不填；若有內容，至少需要 5 個字元
+
+    if 0 < len(engineer_note) < 5:
+        raise HTTPException(
+            status_code=400,
+            detail="工程師備註若有填寫，至少需要 5 個字元"
+        )
+
+    return {  #驗證成功時由 FastAPI 自動轉成 JSON
+        "message": "後端驗證成功",
+        "file_name": request.file_name,
+        "engineer_note": engineer_note
+    }
 
 app.mount(  #掛載（掛接）一個子應用程式或服務到指定網址路徑
     "/",  #網站根網址

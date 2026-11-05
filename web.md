@@ -705,3 +705,73 @@ const data = await response.json();
 透過 `readJson()`、`renderSummaryCards()`、`loadSummary()`、`renderSummaryDetail()` 和 `loadSummaryDetail()` 的分工，我開始理解資料請求、資料解析與畫面更新應該分開管理。這樣不但能重複使用函式，也比較容易判斷錯誤發生在哪一層。
 
 本週也遇到 HTTP 200 但前端仍失敗的情況。最後透過 Console 的 `Maximum call stack size exceeded` 找到無限遞迴問題，讓我理解除錯不能只查看 HTTP 狀態，也需要檢查 JavaScript 的實際執行流程。
+
+---
+
+## W8：表單處理、前後端驗證與 XSS 防護
+
+### 本週目標
+
+- 建立完整的表單提交流程。
+- 加入前端與後端輸入驗證。
+- 使用 POST Request 傳送 JSON 資料。
+- 安全顯示使用者輸入。
+
+### 操作紀錄
+
+- 替表單加入 `analysisForm`，將按鈕改為 `type="submit"`。
+- 使用 `submit` 事件與 `event.preventDefault()`，避免頁面重新整理。
+- 將 CSV 欄位設為必填，並檢查副檔名是否為 `.csv`。
+- 將工程師備註限制為最多 200 個字元；若有填寫，至少需要 5 個字元。
+- 建立 `POST /api/analysis/validate`。
+- 使用 Pydantic 驗證 `file_name` 與 `engineer_note`。
+- 使用 FastAPI `/docs` 測試 HTTP 200、400 與 422。
+- 使用 `textContent` 顯示工程師備註，避免輸入內容被解析成 HTML。
+
+### 尚未完成
+
+- 實際上傳及讀取 CSV 內容。
+- 執行資料品質檢查與異常分析。
+- 顯示分析結果與可疑因子。
+- 將分析紀錄保存至資料庫。
+
+### 學習重點
+
+#### 表單提交
+
+`type="submit"` 會觸發表單的 `submit` 事件。使用 `event.preventDefault()` 可以阻止瀏覽器重新整理頁面，再由 JavaScript 接手驗證及 API 請求。
+
+#### 前端與後端驗證
+
+前端驗證可以立即提醒使用者，但可能被繞過，因此後端仍須使用 Pydantic 與自訂規則再次驗證資料。
+
+#### POST 與 JSON
+
+前端使用 POST 將檔名與工程師備註轉成 JSON 傳給 FastAPI，後端驗證後再將結果回傳給網頁。
+
+#### XSS 防護
+
+顯示使用者輸入時使用 `textContent`，讓內容以純文字呈現，避免 HTML 標籤或事件被瀏覽器執行。
+
+### 遇到的問題與解決方式
+
+#### 按鈕沒有反應
+
+JavaScript 缺少括號，導致後續程式無法執行。補上括號後，表單事件恢復正常。
+
+#### 成功結果顯示 undefined
+
+程式仍保留 W06 的 `data.title`，但 W08 API 回傳的是 `data.message`。移除舊程式後即可正確顯示。
+
+#### 修改後仍顯示舊結果
+
+瀏覽器仍使用快取中的 JavaScript，因此將載入版本更新為：
+
+```html
+<script src="./app.js?v=13"></script>
+```
+
+### 本週心得
+
+本週將按鈕點擊擴充成完整的表單提交流程，並完成 HTML、JavaScript 與 FastAPI 三個層級的輸入驗證。
+我理解前端驗證主要改善操作體驗，後端驗證才是不能省略的資料檢查。透過 XSS 測試，也理解顯示使用者輸入時應優先使用 textContent。除錯過程則讓我更熟悉如何檢查 JavaScript 語法、API 回傳欄位及瀏覽器快取

@@ -59,10 +59,10 @@
                     <p id="summaryDetailText">請點選上方卡片查看說明。</p>  <!--顯示 API 回傳的詳細說明-->
                 </div>
 
-                <form> <!--包住一組需要輸入或送出的資料-->
+                <form id="analysisForm"> <!--包住一組需要輸入或送出的資料-->
                     <label for="csvFile">選擇 CSV 檔案：</label> <!--label:說明輸入欄位的用途-->
                     <!--for="csvFile":表示這個說明對應到 id="csvFile" 的欄位-->
-                    <input type="file" id="csvFile" name="csvFile" accept=".csv">
+                    <input type="file" id="csvFile" name="csvFile" accept=".csv" required>  <!--required：表示此欄位為必填-->
 
                     <p> <!--把提醒內容包成一個完整段落-->
                         <strong>提醒：</strong> <!--表示重要內容，通常會顯示成粗體-->
@@ -71,13 +71,14 @@
 
                     <div class="form-field">
                         <label for="engineerNote">工程師備註：</label>
-                        <textarea id="engineerNote" name="engineerNote" rows="4" placeholder="請輸入分析條件或現場觀察記錄"></textarea>
+                        <textarea id="engineerNote" name="engineerNote" rows="4" maxlength="200" placeholder="請輸入分析條件或現場觀察記錄"></textarea>
                         <!--可輸入多行文字-->
                     </div>
                     <div class="form-actions"> <!--預設是區塊元素，會從新的一行開始，所以「開始分析」按鈕就會換行-->
-                        <button type="button" id="startButton">開始分析</button> <!--button:建立可以點擊的按鈕-->
-                        <!--type="button"：避免按鈕自動送出表單、重新整理頁面-->
+                        <button type="submit" id="startButton">開始分析</button> <!--type="submit"：點擊後會觸發表單的 sumbit 事件-->
                     </div>
+
+                    <p id="formMessage" aria-live="polite"></p>  <!--formMessage: 顯示表單驗證或送出結果; ria-live="polite"：內容改變時，讓輔助工具適時讀出訊息-->
 
                 </form>
 
@@ -89,7 +90,7 @@
     <p>製程異常分析輔助平台｜Web Programming 課程專案</p>
     </footer>
 
-    <script src="./app.js?v=9"></script>  <!--?v=9 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
+    <script src="./app.js?v=13"></script>  <!--?v=13 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
     <!--<script>：載入或撰寫JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 /body前面，是為了讓瀏覽器先讀完 HTML 內容再執行 JavaScript-->
 
 </body>
