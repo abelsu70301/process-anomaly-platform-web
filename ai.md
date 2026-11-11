@@ -535,3 +535,59 @@ analysisStatus.textContent = data.message;
 - HTTP 422：送出的 JSON 缺少必要欄位，或不符合 Pydantic 模型定義。
 
 透過 `/docs` 分別測試正確資料、錯誤副檔名及缺少 `file_name`，可以確認後端驗證不是只處理成功情況，也能正確回報不同類型的輸入錯誤。
+
+---
+
+## W9：模擬登入、Token 與權限檢查
+
+### 1. Authentication 與 Authorization 的差別
+
+**討論內容：**
+
+完成模擬登入後，進一步討論使用者登入成功是否代表可以執行所有功能。
+
+**討論結果：**
+
+Authentication 是確認使用者是否已登入；Authorization 是檢查已登入的使用者是否有操作權限。
+
+目前執行異常分析前會檢查：
+
+- 是否存在模擬 Token。
+- Token 是否已過期。
+- 使用者角色是否為 `engineer`。
+
+沒有 Token 或 Token 過期時，概念類似 HTTP 401；已登入但角色不符時，概念類似 HTTP 403。
+
+目前只是前端教學模擬，正式系統仍須由後端驗證 Token 與權限。
+
+### 2. 為什麼重新整理後登入狀態會消失
+
+**討論內容：**
+
+測試時先完成登入，再重新整理網頁，登入狀態會回到「目前尚未登入」。
+
+**討論結果：**
+
+目前模擬 Token 只保存在 JavaScript 變數：
+
+`simulatedAccessToken`
+
+重新整理後 JavaScript 會重新執行，變數恢復為 `null`，因此登入狀態不會保留。
+
+這不是程式錯誤，而是目前保存方式的預期結果。下一週會再比較 Cookie、LocalStorage、SessionStorage 與後端 Session。
+
+### 3. 登入介面的 CSS 如何運作
+
+**討論內容：**
+
+加入登入表單樣式後，討論各段 CSS 的作用。
+
+**討論結果：**
+
+- `.form-field` 使用 Flexbox 與直向排列，讓標籤和輸入框由上往下顯示。
+- `gap` 控制欄位內元素的距離。
+- `margin` 是元素外部距離，`padding` 是元素內部距離。
+- `box-sizing: border-box` 讓輸入框寬度包含內距與邊框，避免超出容器。
+- `.form-actions` 使用 `flex-wrap`，讓按鈕在窄畫面中可以自動換行。
+- CSS 顏色變數讓輸入框與個資說明區塊可以配合深色模式。
+- `cursor: pointer` 讓可點擊的個資說明標題顯示手指游標。

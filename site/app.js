@@ -14,6 +14,53 @@ const summaryDetailText = document.getElementById("summaryDetailText");  //取�
 const analysisForm = document.getElementById("analysisForm");  //取得分析表單元素
 const formMessage = document.getElementById("formMessage");  //取得表單訊息顯示元素
 const engineerNoteInput = document.getElementById("engineerNote");  //取得工程師備註輸入欄位元素
+const loginForm = document.getElementById("loginForm");  //取得登入表單
+const loginEmailInput = document.getElementById("loginEmail");  //取得 Email 輸入欄位
+const loginPasswordInPut = document.getElementById("loginPassword");  //取得密碼輸入欄位
+const loginMessage = document.getElementById("loginMessage");  //取得登入狀態文字
+const googleLoginButton = document.getElementById("googleLoginButton");  //取得模擬 Google 登入按鈕
+
+
+let simulatedAccessToken = null;  //暫存模擬 Token ; 重新整理頁面後就會消失
+
+function handleLogin(event) {
+    event.preventDefault();  //阻止表單重新整理頁面
+
+    const email = loginEmailInput.value.trim();  //取得 Email 並移除前後空白
+    const password = loginPasswordInPut.value;  //取得密碼，只用來確認欄位已有輸入
+
+    if (!email || password.length <8) {
+        loginMessage.textContent = "登入失敗：請確認 Email 與密碼格式";
+        return;
+    }
+
+    simulatedAccessToken = {
+        sub: "demo-engineer-001",
+        role: "engineer",
+        exp: Date.now() + 60 * 60 *1000
+    };  //建立教學用 Token 資料，有效時間設定為一小時
+
+    loginMessage.textContent = `模擬登入成功：${email} (角色：工程師) `;
+
+    console.log("模擬 Toke：", simulatedAccessToken);
+}
+
+loginForm.addEventListener("submit", handleLogin);
+
+function handleGoogleLogin() {
+    simulatedAccessToken = {
+        sub: "google-demo-user-001",
+        role: "engineer",
+        provider: "google",
+        exp: Date.now() + 60 * 60 *1000
+    };  //模擬 Google 驗證成功後，網站取得的登入資訊
+
+    loginMessage.textContent = "模擬 Google 登入成功 (角色：工程師) ";
+
+    console.log("模擬 Google Token：", simulatedAccessToken);
+}
+
+googleLoginButton.addEventListener("click", handleGoogleLogin);
 
 async function readJson(response) {  //readJson：統一檢查 HTTP 狀態並解析 JSON
 
@@ -147,6 +194,22 @@ async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一�
 
 analysisForm.addEventListener("submit", function (event) {  //監聽分析表單的提交事件
     event.preventDefault();  //阻止瀏覽器預設表單提交行為並重新整理頁面
+
+    if (!simulatedAccessToken) {  //沒有 Token: 尚未完成身分驗證
+        formMessage.textContent = "身分驗證失敗：請先登入 (類似 HTTP 401) ";
+        return;
+    }
+
+    if (Date.now() >= simulatedAccessToken.exp) {  //Token 過期：登入狀態失效
+        simulatedAccessToken = null;
+        formMessage.textContent = "登入已過期，請重新登入 (類似 HTTP 401) ";
+        return;
+    }
+
+    if (simulatedAccessToken.role !== "engineer") {  //已登入但角色不符合
+        formMessage.textContent = "權限不足，無法執行分析 (類似 HTTP 403) ";
+        return;
+    }
 
     const selectedFile = csvFileInput.files[0];  //取得使用者選擇的第一個檔案
 

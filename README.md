@@ -92,6 +92,15 @@ Web Programming 課程實作專案。
 - 使用 `textContent` 安全顯示使用者輸入
 - 測試 HTTP 200、400 與 422 回應
 
+### W9：模擬登入、Token 與權限檢查
+
+- 建立 Email、密碼及模擬 Google 登入介面
+- 使用 JavaScript 模擬登入 Token 與到期時間
+- 區分 Authentication 與 Authorization
+- 模擬 HTTP 401 與 403 的權限判斷
+- 加入測試資料及個資使用說明
+- Token 僅暫存在 JavaScript 記憶體，不會永久保存
+
 ## 專案結構
 
 ```text

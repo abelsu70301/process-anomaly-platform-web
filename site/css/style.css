@@ -134,3 +134,56 @@ footer p {
 .summary-detail h3 {
     margin-top: 0;
 }  /*移除詳情標題上方的預設外距*/
+
+/* 表單欄位共用排版 */
+.form-field {  /*.會選取 HTML 中所有：<div class="form-field">*/
+    display: flex;  /*啟用 Flexbox 排版*/
+    flex-direction: column;  /*讓裡面的元素由上往下排列*/
+    gap: 6px;  /*標籤和輸入框之間保留 6px*/
+    margin-bottom: 16px;  /*每組欄位下方保留 16px*/
+}
+
+.form-field input,  /*逗號表示同時選取兩種元素*/  /*input: 輸入框*/
+.form-field textarea {  /*textarea: 多行文字欄位*/
+    width: 100%;  /*輸入框使用父元素的全部可用寬度*/
+    box-sizing: border-box;
+    padding: 10px 12px;  /*讓文字不會貼在輸入框邊緣*/
+    color: var(--color-text);  /*使用前面定義的 CSS 顏色變數*/
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;  /*輸入框四個角有 6px 圓角*/
+    font: inherit;  /*輸入框繼承網頁原本的字型和文字大小*/
+}
+
+/* 表單按鈕排列 */
+.form-actions {
+    display: flex;  /*讓按鈕使用 Flexbox 排列*/
+    flex-wrap: wrap;  /*畫面寬度不足時，按鈕可以自動換行*/
+    gap: 10px;  /*按鈕之間*/
+    margin-top: 12px;  /*按鈕區與上方欄位*/
+}
+
+/* 登入區與分析區的分隔 */
+#login {  /*會選取：<section id="login">*/
+    margin-bottom: 24px;  /*登入區外部下方保留空間，外部*/
+    padding-bottom: 24px;  /*登入內容和底部分隔線之間保留空間，內部*/
+    border-bottom: 1px solid var(--color-border);  /*在登入區底部畫一條分隔線*/
+}
+
+#loginMessage {  /*選取：<p id="loginMessage">*/
+    font-weight: 600;  /*顯示得較粗*/
+}
+
+/* 個資使用說明 */
+.privacy-notice {
+    margin-top: 16px;  /*與上方登入表單保持距離*/
+    padding: 12px;  /*內容與框線保持距離*/
+    background-color: var(--color-page-background);
+    border: 1px solid var(--color-border);  /*加上邊框*/
+    border-radius: 6px;
+}
+
+.privacy-notice summary {
+    cursor: pointer;  /*滑鼠移到標題時，游標變成手指*/
+    font-weight: 600;  /*標題顯示得較粗*/
+}
