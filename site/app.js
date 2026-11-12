@@ -19,7 +19,178 @@ const loginEmailInput = document.getElementById("loginEmail");  //取得 Email �
 const loginPasswordInPut = document.getElementById("loginPassword");  //取得密碼輸入欄位
 const loginMessage = document.getElementById("loginMessage");  //取得登入狀態文字
 const googleLoginButton = document.getElementById("googleLoginButton");  //取得模擬 Google 登入按鈕
+const storageNicknameInput = document.getElementById("storageNickname");  //測試暱稱輸入欄位
+const saveLocalButton = document.getElementById("saveLocalButton");  //LocalStorage 儲存按鈕
+const saveSessionButton = document.getElementById("saveSessionButton");  //SessionStorage 儲存按鈕
+const saveCookieButton = document.getElementById("saveCookieButton");  //Cookie 儲存按鈕
+const readStorageButton = document.getElementById("readStorageButton");  //讀取全部按鈕
+const clearStorageButton = document.getElementById("clearStorageButton");  //清除全部按鈕
+const storageMessage = document.getElementById("storageMessage");  //顯示測試結果
+const startServerSessionButton = document.getElementById("startServerSessionButton");  //建立後端 Session 按鈕
+const checkServerSessionButton = document.getElementById("checkServerSessionButton");  //檢查後端 Session 按鈕
+const logoutServerSessionButton = document.getElementById("logoutServerSessionButton");  //刪除後端 Session 按鈕
+const serverSessionMessage = document.getElementById("serverSessionMessage");  //顯示後端 Session 測試結果
 
+
+function getStorageNickname() { //統一取得並檢查測試暱稱
+    const nickname = storageNicknameInput.value.trim();
+
+    if (!nickname) {
+        storageMessage.textContent = "請先輸入測試暱稱";
+        return null;  //沒有輸入時回傳 null，停止儲存
+    }
+    return nickname;
+}
+
+function saveToLocalStorage() {
+    const nickname = getStorageNickname();
+
+    if (nickname === null) {
+        return;
+    }
+
+    localStorage.setItem("process_anomaly_nickname", nickname);  //將資料保存至瀏覽器  //localStorage.getItem()：讀取 LocalStorage
+
+    storageMessage.textContent = `已將「${nickname}」儲存至 LocalStorage`;
+}  //LocalStorage 的資料重新整理或關閉分頁後通常仍會保留
+
+saveLocalButton.addEventListener("click", saveToLocalStorage);
+
+function saveToSessionStorage() {
+    const nickname = getStorageNickname();
+
+    if(nickname === null) {
+        return;
+    }
+
+    sessionStorage.setItem("process_anomaly_nickname", nickname);  //sessionStorage.getItem()：讀取 SessionStorage
+
+    storageMessage.textContent = `已將「${nickname}」儲存至 SessionStorage`;
+}  //SessionStorage：只屬於目前分頁的工作階段，關閉該分頁後通常會清除
+
+saveSessionButton.addEventListener("click", saveToSessionStorage);
+
+function saveToCookie() {
+    const nickname = getStorageNickname();
+
+    if (nickname === null) {
+        return;
+    }
+
+    document.cookie = `process_anomaly_nickname=${encodeURIComponent(nickname)}; ` + "Path=/; Max-Age=3600; SameSite=Lax";
+    //document.cookie:取得目前 JavaScript 可以讀取的 Cookie 字串
+    // // encodeURIComponent()：把中文及特殊字元轉成適合放入 Cookie 的格式
+    //Path=/：整個網站路徑都能使用這筆 Cookie  //SameSite=Lax：限制部分跨站請求自動附帶 Cookie，降低部分 CSRF 風險
+
+    storageMessage.textContent = `已將「${nickname}」儲存至 Cookie`;
+}
+
+saveCookieButton.addEventListener("click", saveToCookie);
+
+function getCookieValue(cookieName) {
+    const prefix = `${cookieName}=`;
+
+    const matchedCookie = document.cookie.split(";").find(function(cookieItem){return cookieItem.startsWith(prefix);});
+    //.split("; ")：把多筆 Cookie 分開  //.find()：尋找指定名稱的 Cookie
+
+    if(!matchedCookie) {
+        return null;
+    }
+
+    return decodeURIComponent(matchedCookie.substring(prefix.length));  //decodeURIComponent()：將 Cookie 中編碼過的中文還原
+}
+
+function readAllStorage() {
+    const localValue = localStorage.getItem("process_anomaly_nickname");  //讀取 LocalStorage
+
+    const sessionValue = sessionStorage.getItem("process_anomaly_nickname");  //讀取 SessionStorage
+
+    const cookieValue = getCookieValue("process_anomaly_nickname");
+
+    storageMessage.textContent =
+        `LocalStorage：${localValue ?? "無資料"}|` +
+        `SessionStorage：${sessionValue?? "無資料"}|` +
+        `Cookie：${cookieValue ?? "無資料"}`;
+}  //?? "無資料"：如果讀到 null，畫面改顯示「無資料」
+
+readStorageButton.addEventListener("click", readAllStorage);
+
+function clearAllStorage(){
+    localStorage.removeItem("process_anomaly_nickname");  //removeItem()：依照 Key 刪除 Web Storage 中的資料
+    sessionStorage.removeItem("process_anomaly_nickname");
+
+    document.cookie = "process_anomaly_nickname=; " + "Path=/ Max-Age=0; SameSite=Lax";
+    //刪除 Cookie 時，必須使用相同的 Cookie 名稱與 Path  //Max-Age=0：告訴瀏覽器讓 Cookie 立即到期
+
+    storageNicknameInput.value = "";  //清空畫面的輸入欄位
+    storageMessage.textContent = "已清除 LocalStorage、SessionStorage 與 Cookie";
+}  //只刪除本次測試使用的資料，不會清除網站其他儲存內容
+
+clearStorageButton.addEventListener("click", clearAllStorage);
+
+//點擊按鈕後向後端建立 Session
+async function startServerSession() {  //宣告一個非同步函式，意思是裡面可能要等後端回應，不能直接同步完成
+    serverSessionMessage.textContent = "正在建立後端 Session...";
+
+    try {  //裡面執行可能會失敗的程式
+        const response = await fetch("./api/session/start", {  //await:表示等它完成才往下執行
+            method: "POST",
+            credentials: "same-origin"
+        });  //credentials: "same-origin"：允許同一來源的請求接收及傳送 Cookie
+
+        const data = await readJson(response);  //讀取回應內容，並轉成 JSON 物件
+
+        serverSessionMessage.textContent = data.message;  //把後端回傳的訊息顯示在畫面上
+        console.log("建立後端 Session：", data);  //在瀏覽器 console 印出這次請求的回應，方便除錯
+    } catch (error) {  //是錯誤處理：如果請求失敗，就執行錯誤訊息
+        console.error("建立後端 Session 失敗：", error);
+        serverSessionMessage.textContent = "建立後端 Session 失敗";
+    }
+}
+
+startServerSessionButton.addEventListener("click", startServerSession);
+
+async function checkServerSession() {
+    serverSessionMessage.textContent = "正在檢查後端 Session...";
+
+    try {
+        const response = await fetch("./api/session/check", {
+            method: "GET",
+        credentials: "same-origin"
+    });  ////瀏覽器會自動將同一來源的 Cookie 傳給後端
+
+    const data = await readJson(response);
+
+    serverSessionMessage.textContent = data.message;
+    console.log("檢查後端 SEssion：", data);
+    } catch (error) {
+        console.error("檢查後端 Session 失敗：", error);
+        serverSessionMessage.textContent = "檢查後端 Session 失敗";
+    }
+}
+
+checkServerSessionButton.addEventListener("click", checkServerSession);
+
+async function logoutServerSession() {
+    serverSessionMessage.textContent = "正在刪除後端 Session...";
+
+    try{
+        const response = await fetch("./api/session/logout", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+
+        const data = await readJson(response);
+
+        serverSessionMessage.textContent = data.message;
+        console.log("刪除後端 Session：", data);
+    } catch (error) {
+        console.error("刪除後端 Session 失敗：", error);
+        serverSessionMessage.textContent = "刪除後端 Session 失敗"
+    }
+}
+
+logoutServerSessionButton.addEventListener("click", logoutServerSession);
 
 let simulatedAccessToken = null;  //暫存模擬 Token ; 重新整理頁面後就會消失
 
@@ -166,7 +337,7 @@ async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一�
     analysisStatus.textContent = "正在進行後端驗證...";  //更新顯示的文字為...
 
     try {
-        const response = await fetch("./api/analysis/validate", {  //fetch()：向公開 API 發送 GET Request
+        const response = await fetch("./api/analysis/validate", {  //fetch()：前端用來發送 HTTP 請求的 API
             method: "POST",  //指定使用 POST 方法
             headers: {
                 "Content-Type": "application/json",  //指定傳送的資料格式為 JSON

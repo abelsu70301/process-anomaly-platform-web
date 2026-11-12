@@ -838,3 +838,93 @@ Token 可以視為登入後的電子通行證。本週使用的 Token 只是 Jav
 本週完成模擬登入、Token 與角色權限檢查。我理解身分驗證與授權是不同階段，登入成功後仍需要確認使用者是否有權執行特定功能。
 
 目前登入與 Google 登入都是前端模擬，不能視為正式安全機制。正式系統仍必須由後端驗證 Token、到期時間與權限。本週也透過重新整理測試理解 JavaScript 記憶體中的 Token 不會永久保存，為下一週的狀態管理做準備。
+
+---
+
+## W10：瀏覽器儲存與後端 Session Cookie
+
+### 本週目標
+
+- 理解 HTTP 無狀態的特性。
+- 比較 LocalStorage、SessionStorage 與 Cookie。
+- 練習使用 JavaScript 儲存、讀取及清除測試資料。
+- 使用 FastAPI 建立 HttpOnly Session Cookie。
+- 認識 Secure、HttpOnly、SameSite 與 Path 的用途。
+
+### 操作紀錄
+
+- 建立狀態管理測試介面。
+- 使用相同的測試暱稱比較三種瀏覽器儲存方式。
+- 建立讀取全部與清除全部功能。
+- 使用 FastAPI 建立 Session Cookie。
+- 建立 Session 檢查 API，確認瀏覽器會自動傳送 Cookie。
+- 建立登出 API，由後端刪除 HttpOnly Cookie。
+- 將建立、檢查及登出 API 連接至網頁按鈕。
+- 使用開發者工具檢查 Cookie 的 Path、Secure、HttpOnly 與 SameSite。
+- 使用 `document.cookie` 確認 JavaScript 無法讀取 HttpOnly Cookie。
+
+### 尚未完成
+
+- 將 W9 的模擬登入改成正式的後端登入流程。
+- 建立真正的伺服器端 Session 儲存空間。
+- 將 Session 對應至資料庫中的使用者。
+- 建立正式的 Session ID、到期及撤銷機制。
+- 在正式 HTTPS 環境測試 Cookie。
+- 實作完整的 CSRF 防護。
+
+### 學習重點
+
+#### HTTP 無狀態
+
+HTTP Request 之間預設不會自動記住前一次操作。若網站需要保存登入或操作狀態，就必須使用瀏覽器儲存、Cookie 或伺服器端 Session。
+
+#### 三種瀏覽器儲存方式
+
+| 類型 | 保存時間 | 是否自動傳給後端 | 常見用途 |
+|---|---|---|---|
+| LocalStorage | 手動刪除前持續保存 | 否 | 主題、偏好設定 |
+| SessionStorage | 分頁關閉前保存 | 否 | 單一分頁的暫時狀態 |
+| Cookie | 依到期時間保存 | 是 | Session 識別與登入狀態 |
+
+LocalStorage 與 SessionStorage 由 JavaScript 主動讀寫，不會自動附在 HTTP Request 中。Cookie 符合網域及路徑條件時，瀏覽器會自動傳送給後端。
+
+#### HttpOnly Session Cookie
+
+後端使用 `Set-Cookie` 要求瀏覽器建立測試 Session Cookie。瀏覽器會自動在後續請求中附上 Cookie，FastAPI 可以透過 `request.cookies` 讀取。
+
+本週的 Cookie 只使用固定測試值，尚未建立真正的使用者 Session，因此不能視為正式登入系統。
+
+#### Cookie 安全屬性
+
+- `HttpOnly`：禁止 JavaScript 直接讀取 Cookie。
+- `Secure`：Cookie 只應透過 HTTPS 傳送。
+- `SameSite=Lax`：降低其他網站冒用 Cookie 發送請求的風險。
+- `Path=/`：Cookie 適用於整個網站。
+- `Max-Age`：設定 Cookie 的有效時間。
+- `__Host-`：要求 Cookie 使用 Secure、Path `/`，且不能設定 Domain。
+
+### 遇到的問題與解決方式
+
+#### 讀取與清除按鈕沒有反應
+
+HTML 最初缺少 `readStorageButton`，JavaScript 使用 `getElementById()` 時取得 `null`，導致後續事件監聽無法建立。補上相同 ID 的按鈕後功能恢復正常。
+
+#### 清除後 Cookie 仍然存在
+
+刪除 Cookie 時必須使用與建立時相同的名稱及 Path，並將 `Max-Age` 設為 0。HttpOnly Cookie 無法由 JavaScript 刪除，必須呼叫後端登出 API。
+
+#### 建立 Session 按鈕沒有送出請求
+
+HTML 的 ID 與 JavaScript 使用的名稱不一致，因此按鈕事件沒有正確連接。統一名稱並更新 JavaScript 快取版本後恢復正常。
+
+#### 登出 API 回傳 405
+
+前端呼叫的 API 路徑與後端路由不一致，因此請求沒有進入正確的登出函式。比對前後端路徑並修正後，登出 API 回傳 200，Cookie 也能正常刪除。
+
+### 本週心得
+
+本週比較 LocalStorage、SessionStorage 與 Cookie，理解它們的保存時間、使用範圍及是否會自動傳送給後端。
+
+透過 FastAPI 建立、檢查及刪除 HttpOnly Cookie，我理解前端 JavaScript 不需要也不能直接讀取 HttpOnly Session Cookie，而是由瀏覽器自動附在請求中，再交由後端判斷狀態。
+
+除錯過程也讓我再次確認 HTML ID、JavaScript 變數名稱、API 路徑與 HTTP 方法必須完全一致。目前功能仍是教學用 Session 範例，正式系統還需要後端 Session 儲存、使用者資料庫、HTTPS 及完整的安全防護。

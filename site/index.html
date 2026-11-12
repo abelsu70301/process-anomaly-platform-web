@@ -87,6 +87,54 @@
                 </details>
             </section>
 
+            <section id="storageDemo">
+                <h2>狀態管理測試</h2>
+
+                <p>
+                    請輸入測試暱稱，比較 LocalStorage、SessionStorage 與 Cookie 的保存差異
+                    請勿輸入真實個資、密碼或 Token
+                </p>
+
+                <div class="form-field">
+                    <label for="storageNickname">測試暱稱：</label>
+                    <input
+                    type="text"
+                    id="storageNickname"
+                    maxlength="30"
+                    placeholder="例如：測試工程師"
+                >
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="saveLocalButton">儲存至 LocalStorage</button>
+
+                    <button type="button" id="saveSessionButton">儲存至 SessionStorage</button>
+
+                    <button type="button" id="saveCookieButton">儲存至 Cookie</button>
+
+                    <button type="button" id="readStorageButton">讀取全部</button>
+
+                    <button type="button" id="clearStorageButton">清除全部</button>
+                </div>
+
+                <p id="storageMessage" aria-live="polite">尚未儲存測試資料</p>
+
+                <h3>後端 HttpOnly Cookie 測試</h3>
+
+                <p>
+                    此區使用 FastAPI 建立、檢查及刪除 HttpOnly Session Cookie
+                    JS 無法直接讀取 Cookie 內容，只能呼叫後端 API 確認狀態
+                </p>
+
+                <div class="form-actions">
+                    <button type="button" id="startServerSessionButton">建立後端 Session</button>
+                    <button type="button" id="checkServerSessionButton">檢查後端 Session</button>
+                    <button type="button" id="logoutServerSessionButton">登出並刪除 Session</button>
+                </div>
+
+                <p id="serverSessionMessage" aria-live="polite">尚未測試後端 Session</p>
+            </section>
+
             <section id="analysis"> <!-- 具有特定主題的內容區塊 -->
                 <h2>異常分析</h2> <!-- 第二層標題，層級低於 h1 -->
 
@@ -146,7 +194,7 @@
     <p>製程異常分析輔助平台｜Web Programming 課程專案</p>
     </footer>
 
-    <script src="./app.js?v=15"></script>  <!--?v=15 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
+    <script src="./app.js?v=26"></script>  <!--?v=26 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
     <!--<script>：載入或撰寫JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 /body前面，是為了讓瀏覽器先讀完 HTML 內容再執行 JavaScript-->
 
 </body>

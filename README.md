@@ -101,6 +101,16 @@ Web Programming 課程實作專案。
 - 加入測試資料及個資使用說明
 - Token 僅暫存在 JavaScript 記憶體，不會永久保存
 
+### W10：瀏覽器儲存與 Session Cookie
+
+- 比較 LocalStorage、SessionStorage 與 Cookie
+- 建立瀏覽器狀態儲存、讀取及清除介面
+- 使用 FastAPI 建立、檢查及刪除 Session Cookie
+- 設定 HttpOnly、Secure、SameSite 與 Path
+- 將 Session API 連接至前端操作按鈕
+- 使用開發者工具驗證 Cookie 的保存及傳送行為
+- 目前使用固定測試 Session ID，尚未連接正式登入與資料庫
+
 ## 專案結構
 
 ```text

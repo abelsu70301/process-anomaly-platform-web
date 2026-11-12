@@ -1,4 +1,6 @@
-from fastapi import FastAPI, HTTPException  #FastAPI：建立 Web 應用程式;HTTPException：讓API可以回傳404等HTTP錯誤
+from fastapi import FastAPI, HTTPException, Request, Response
+#FastAPI：建立 Web 應用程式;HTTPException：讓API可以回傳404等HTTP錯誤
+#Response：讓後端在 HTTP Response 中設定 Cookie;Request：稍後讀取瀏覽器自動送回的 Cookie
 from fastapi.staticfiles import StaticFiles  #StaticFiles：提供 HTML、CSS、JavaScript 等靜態檔案
 from pydantic import BaseModel, Field  #BaseModel：建立資料模型，定義 API 接收的 JSON 資料格式;Field：設定欄位屬性長度等驗證規則
 
@@ -82,6 +84,41 @@ def validate_analysis(request: AnalysisRequest):  # 後端不能相信前端驗�
         "file_name": request.file_name,
         "engineer_note": engineer_note
     }
+
+@app.post("/api/session/start")  #建立後端測試 Session Cookie
+def start_demo_session(response: Response):
+    response.set_cookie(
+        key="__Host-process_anomaly_demo_session",  #Cookie 名稱
+        value="demo-session-001",  #教學用 Session ID，不是真正登入憑證
+        max_age=3600,  #1小時候到期
+        path="/",  #整個網站路徑都能使用
+        httponly=True,  #禁止 JS 使用 document.cookie 讀取
+        secure=True,  #只透過 HTTPS 傳送；localhost 可用來進行本機安全屬性測試
+        samesite="lax"  #限制部分跨站請求附帶 Cookie
+    )  #__Host-：安全 Cookie 前綴，要求 Secure、`Path=/`，而且不能設定 Domain
+
+    return {"message": "後端測試 Session Cookie 已建立"}
+
+@app.get("/api/session/check")  #瀏覽器自動附上符合條件的 Cookie
+def check_demo_session(request: Request):
+    session_id = request.cookies.get("__Host-process_anomaly_demo_session")  #從 Brower 傳來的 Cookie 中取得測試 Session ID
+
+    if session_id is None:
+        return {"has_session": False, "message": "後端沒有收到 Session Cookie"}
+
+    return {"has_session": True, "message": "後端已收到 Session Cookie", "session_id": session_id}
+
+@app.post("/api/session/logout")
+def logout_demo_session(response: Response):
+    response.delete_cookie(
+        key="__Host-process_anomaly_demo_session",
+        path="/",
+        secure=True,
+        httponly=True,  #前端 JS 不能讀取或是刪除，需呼叫後端 API
+        samesite="lax"
+    )  ##使用相同名稱、Path 及安全設定，要求瀏覽器刪除 Cookie
+
+    return {"message": "後端測試 Session Cookie 已刪除"}
 
 app.mount(  #掛載（掛接）一個子應用程式或服務到指定網址路徑
     "/",  #網站根網址
