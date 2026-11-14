@@ -30,6 +30,30 @@ const startServerSessionButton = document.getElementById("startServerSessionButt
 const checkServerSessionButton = document.getElementById("checkServerSessionButton");  //檢查後端 Session 按鈕
 const logoutServerSessionButton = document.getElementById("logoutServerSessionButton");  //刪除後端 Session 按鈕
 const serverSessionMessage = document.getElementById("serverSessionMessage");  //顯示後端 Session 測試結果
+const sidebarToggle = document.getElementById("sidebarToggle");
+const sidebarContent = document.getElementById("sidebarContent");
+const pageLayout = document.querySelector(".page-layout");
+
+sidebarToggle.addEventListener("click", function () {
+    const collapsed =
+        pageLayout.classList.toggle("sidebar-collapsed");
+
+    // 只隱藏選單內容，保留側邊符號
+    sidebarContent.hidden = collapsed;
+
+    sidebarToggle.textContent = collapsed ? "❯" : "❮";
+
+    const label = collapsed
+        ? "展開功能選單"
+        : "收合功能選單";
+
+    sidebarToggle.setAttribute("aria-label", label);
+    sidebarToggle.setAttribute("title", label);
+    sidebarToggle.setAttribute(
+        "aria-expanded",
+        String(!collapsed)
+    );
+});
 
 
 function getStorageNickname() { //統一取得並檢查測試暱稱

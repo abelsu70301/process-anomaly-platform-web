@@ -15,10 +15,33 @@
         <h1>製程異常分析輔助平台</h1> <!--"h"代表heading標題/"h1"是網頁最重要的第一層標題-->
         <p>上傳製程量測資料，取得異常分類結果與可疑因子排名。</p> <!--p 代表 paragraph（段落），適合放一般說明文字-->
         <button type="button" id="themeButton">切換深色模式</button>  <!--加入「深色模式」按鈕-->
+        <aside id="sidebar">
+    <button
+        type="button"
+        id="sidebarToggle"
+        class="sidebar-toggle"
+        aria-controls="sidebarContent"
+        aria-expanded="true"
+        aria-label="收合功能選單"
+        title="收合功能選單"
+    >❮</button>
+
+    <div id="sidebarContent">
+        <h2>功能選單</h2>
+
+        <nav>
+            <a href="#login">使用者登入</a>
+            <a href="#analysis">異常分析</a>
+            <a href="#">資料品質</a>
+            <a href="#">分析結果</a>
+            <a href="#">歷史紀錄</a>
+        </nav>
+    </div>
+</aside>
     </header>
 
     <div class="page-layout">  <!--page-layout 是我們自己取的 class 名稱-->
-        <aside> <!--主要內容旁邊的輔助區域，常用來做側邊欄-->
+        <aside id="sidebar"> <!--主要內容旁邊的輔助區域，常用來做側邊欄-->
             <h2>功能選單</h2>
 
             <nav> <!--放置網站導覽連結-->

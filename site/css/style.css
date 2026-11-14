@@ -187,3 +187,37 @@ footer p {
     cursor: pointer;  /*滑鼠移到標題時，游標變成手指*/
     font-weight: 600;  /*標題顯示得較粗*/
 }
+
+/* 讓側邊符號以側邊欄為定位基準 */
+#sidebar {
+    position: relative;
+    min-width: 0;
+}
+
+/* 側邊欄邊緣的收合符號 */
+.sidebar-toggle {
+    position: absolute;
+    top: 12px;
+    right: -14px;
+    z-index: 1;
+
+    width: 28px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+/* 收合後保留窄邊，主內容使用剩下的空間 */
+.page-layout.sidebar-collapsed {
+    grid-template-columns: 32px minmax(0, 1fr);
+}
+
+.page-layout.sidebar-collapsed #sidebar {
+    padding: 0;
+    min-height: 64px;
+}
+
+#sidebarContent[hidden] {
+    display: none;
+}
