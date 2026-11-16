@@ -928,3 +928,10 @@ HTML 的 ID 與 JavaScript 使用的名稱不一致，因此按鈕事件沒有�
 透過 FastAPI 建立、檢查及刪除 HttpOnly Cookie，我理解前端 JavaScript 不需要也不能直接讀取 HttpOnly Session Cookie，而是由瀏覽器自動附在請求中，再交由後端判斷狀態。
 
 除錯過程也讓我再次確認 HTML ID、JavaScript 變數名稱、API 路徑與 HTTP 方法必須完全一致。目前功能仍是教學用 Session 範例，正式系統還需要後端 Session 儲存、使用者資料庫、HTTPS 及完整的安全防護。
+
+### W10 補充：側邊選單互動優化
+
+- 新增左上角 ☰ 圖示，可展開及收合功能選單。
+- 展開時主內容向右調整，與側邊欄並排，避免文字被遮住。
+- 支援 Esc 收合，並同步更新 aria-expanded 與 inert 狀態。
+- 練習 DOM 事件、classList、CSS 定位與轉場動畫。

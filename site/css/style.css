@@ -188,36 +188,80 @@ footer p {
     font-weight: 600;  /*標題顯示得較粗*/
 }
 
-/* 讓側邊符號以側邊欄為定位基準 */
-#sidebar {
-    position: relative;
-    min-width: 0;
+/*主內容維持單欄，選單浮在上方*/
+.page-layout {
+    grid-template-columns: minmax(0, 1fr); /*表示可以縮小並使用剩餘可用寬度*/
 }
 
-/* 側邊欄邊緣的收合符號 */
+/*左上角的選單圖示*/
 .sidebar-toggle {
-    position: absolute;
-    top: 12px;
-    right: -14px;
-    z-index: 1;
-
-    width: 28px;
+    position: fixed;  /*固定在瀏覽器視窗的位置，捲動頁面時仍留在原位*/
+    top: 16px;
+    left: 16px;
+    z-index: 1001;  /*決定重疊時的前後層級，讓按鈕位於選單上方*/
+    /*按鈕大小*/
+    width: 40px;
     height: 40px;
     padding: 0;
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    font-size: 24px;  /*設定 ☰ 的大小*/
 }
 
-/* 收合後保留窄邊，主內容使用剩下的空間 */
-.page-layout.sidebar-collapsed {
-    grid-template-columns: 32px minmax(0, 1fr);
+/*預設藏在畫面左側*/
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1000;  /*層級是 1000，比按鈕的 1001 低，因此展開後仍能看到並點選按鈕*/
+
+    width: min(260px, 85vw);  /*取兩者較小值。一般寬度是 260px；小螢幕時最多占視窗寬度的 85%*/
+    box-sizing: border-box;  /*指定寬度包含內距與邊框*/
+    padding: 72px 16px 16px;
+    overflow-y: auto;  /*選單內容太長時，可以上下捲動*/
+    border-radius: 0;
+
+    transform: translateX(-100%);  /*往左移動「側邊欄自身寬度的 100%」，讓它移出畫面*/
+    visibility: hidden;  /*將側邊欄設為不可見*/
+    transition:  /*讓位置切換花 0.25 秒，形成滑動效果*/
+        transform 0.25s ease;
+        visibility: 0.25s;
 }
 
-.page-layout.sidebar-collapsed #sidebar {
-    padding: 0;
-    min-height: 64px;
+/*展開時套用畫面*/
+#sidebar.is-open {
+    transform: translate(0);
+    visibility: visible;
+}
+/*使用者在裝置設定中偏好減少動畫，就直接切換顯示狀態，不播放滑動動畫*/
+@media (prefers-reduced-motion: reduce) {
+    #sidebar {
+        transition: none;
+    }
 }
 
-#sidebarContent[hidden] {
-    display: none;
+/*選單與主內容共用同一個寬度設定*/
+:root {--sidebar-width: min(260px, 85vw);}  /*宣告一個全域變數*/
+
+#sidebar {width: var(--sidebar-width);}  /*讓側邊欄使用這個寬度
+
+/*標題、主內容與頁尾一起移動*/
+header,
+.page-layout,
+footer {
+    transition: margin-left 0.25s ease;  /*讓主內容、頁尾的左邊距有過渡動畫*/
+}
+
+/*展開時，替左邊選單保留空間*/
+body.sidebar-open header,
+body.sidebar-open .page-layout,
+body.sidebar-open footer {
+    margin-left: var(--sidebar-width);  /*margin-left:會讓內容往右移並縮減可用寬度*/
+}  /*當 body 有 sidebar-open 這個 class:這三個區塊都會設定,margin-left，預留出側邊欄空間*/
+
+@media (prefers-reduced-motion: reduce) {  /*若使用者設定減少動畫，關掉效果避免閃動*/
+    header,
+    .page-layout,
+    footer {
+        transition: none;
+    }
 }
