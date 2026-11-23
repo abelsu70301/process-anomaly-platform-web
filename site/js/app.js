@@ -30,35 +30,10 @@ const startServerSessionButton = document.getElementById("startServerSessionButt
 const checkServerSessionButton = document.getElementById("checkServerSessionButton");  //檢查後端 Session 按鈕
 const logoutServerSessionButton = document.getElementById("logoutServerSessionButton");  //刪除後端 Session 按鈕
 const serverSessionMessage = document.getElementById("serverSessionMessage");  //顯示後端 Session 測試結果
-const sidebarToggle = document.getElementById("sidebarToggle");  //左上角按鈕
-const sidebar = document.getElementById("sidebar");  //側邊欄
+const csvPreviewMessage = document.getElementById("csvPreviewMessage");
 
-//建立共用函式
-function setSidebarOpen(open) {  //opem是自訂參數名稱，呼叫時傳入true:展開;false:收合
-    sidebar.classList.toggle("is-open", open);  //toggle有兩個參數true.false
-    document.body.classList.toggle("sidebar-open", open);  //讓整個頁面同步知道選單是否展開
-    sidebar.inert = !open;  //跟open狀態相反，若open為true，取消insert可以操作
-    sidebarToggle.setAttribute("aria-expanded", String(open));  //再更新輔助資訊
-    //setAttribute()用來修改HTML屬性;String(open)把布林值轉成文字
-    const label = open ? "關閉功能選單" : "開啟功能選單";  //三元運算子
-    //等於 let label; 若open則label=關閉功能選單，否則=開啟功能選單
-    sidebarToggle.setAttribute("aria-label", label);  //把文字放進按鈕和滑鼠提示
-    sidebarToggle.setAttribute("title", label);
-}
 
-sidebarToggle.addEventListener("click", function() {
-    const open = !sidebar.classList.contains("is-open");  //contains()會檢查目前是否展開，再用!取得相反狀態
-    setSidebarOpen(open);
-});
 
-//也可以按 ESC 收起選單
-document.addEventListener("keydown", function(event) {
-    if (event.key === "Escape" &&  //按下按鍵為ESC
-        sidebar.classList.contains("is-open")) {  //選單目前已展開
-            sidebarToggle.focus();  //focus()先把鍵盤焦點移回按鈕
-            setSidebarOpen(false);  //再收起選單，避免焦點留在即將不能操作的區域
-        }
-});
 
 function getStorageNickname() { //統一取得並檢查測試暱稱
     const nickname = storageNicknameInput.value.trim();
@@ -228,20 +203,20 @@ function handleLogin(event) {
     const email = loginEmailInput.value.trim();  //取得 Email 並移除前後空白
     const password = loginPasswordInPut.value;  //取得密碼，只用來確認欄位已有輸入
 
-    if (!email || password.length <8) {
+    if (!email || password.length <8) {  // || :or
         loginMessage.textContent = "登入失敗：請確認 Email 與密碼格式";
         return;
     }
 
     simulatedAccessToken = {
-        sub: "demo-engineer-001",
+        sub: "demo-engineer-001",  //固定的測試使用者 ID
         role: "engineer",
-        exp: Date.now() + 60 * 60 *1000
+        exp: Date.now() + 60 * 60 *1000  //一小時後的到期時間
     };  //建立教學用 Token 資料，有效時間設定為一小時
 
-    loginMessage.textContent = `模擬登入成功：${email} (角色：工程師) `;
+    loginMessage.textContent = `模擬登入成功：${email} (角色：工程師) `;  //畫面顯示
 
-    console.log("模擬 Toke：", simulatedAccessToken);
+    console.log("模擬 Token：", simulatedAccessToken);
 }
 
 loginForm.addEventListener("submit", handleLogin);
@@ -368,9 +343,9 @@ async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一�
         const response = await fetch("./api/analysis/validate", {  //fetch()：前端用來發送 HTTP 請求的 API
             method: "POST",  //指定使用 POST 方法
             headers: {
-                "Content-Type": "application/json",  //指定傳送的資料格式為 JSON
+                "Content-Type": "application/json",  //告訴後端，請求內容是 JSON
             },
-            body: JSON.stringify({  //將 JavaScript 物件轉換成 JSON 字串
+            body: JSON.stringify({  //將 JavaScript 物件轉換成 JSON 字串，，放進請求的 body
                 file_name: selectedFile.name,  //將使用者選擇的檔案名稱傳給後端
                 engineer_note: engineerNote,  //將工程師備註傳給後端
             }),
@@ -389,6 +364,33 @@ async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一�
         console.error("後端驗證失敗：", error);  //將詳細錯誤顯示在 Console，方便開發者除錯
         analysisStatus.textContent = `驗證失敗：${error.message}`;  //在網頁上顯示簡單的失敗訊息
     }
+}
+
+async function previewCsv(selectedFile) {
+    csvPreviewMessage.textContent = "正在讀取 CSV...";
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);  //送的是整個檔案
+
+    try {
+        const response = await fetch("./api/analysis/preview", {
+            method: "POST",
+            body: formData,
+        });
+        const data = await response.json();
+
+        if(!response.ok) {
+            throw new Error(
+                typeof data.detail === "string" ? data.detail : "無法讀取 CSV"
+            );
+        }
+        
+        csvPreviewMessage.textContent = `共 ${data.row_count} 筆資料。欄位:${data.columns.join("、")}`;
+    } catch (error) {
+        console.error("CSV 預覽失敗 :", error);
+        csvPreviewMessage.textContent = `預覽失敗 : ${error.message}`;
+    }
+    
 }
 
 analysisForm.addEventListener("submit", function (event) {  //監聽分析表單的提交事件
@@ -424,12 +426,8 @@ analysisForm.addEventListener("submit", function (event) {  //監聽分析表單
         return;
     }
 
-    if(engineerNote) {
-        formMessage.textContent = `資料集驗證成功，工程師備註：${engineerNote}`;  //在網頁上顯示工程師備註
-    } else {
-        formMessage.textContent = "資料集驗證成功，未填寫工程師備註";  //在網頁上顯示未填寫工程師備註
-    }
-    updateAnalysisStatus(selectedFile, engineerNote);  //呼叫函式，負責在表單驗證成功後，繼續執行原本的 API 測試與更新「分析狀態」卡片
+    formMessage.textContent = "";
+    previewCsv(selectedFile);
 });
 
 const themeButton = document.getElementById("themeButton");  //getElementById("themeButton")：找到剛建立的深色模式按鈕

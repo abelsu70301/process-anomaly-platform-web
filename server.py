@@ -3,6 +3,9 @@ from fastapi import FastAPI, HTTPException, Request, Response
 #Response：讓後端在 HTTP Response 中設定 Cookie;Request：稍後讀取瀏覽器自動送回的 Cookie
 from fastapi.staticfiles import StaticFiles  #StaticFiles：提供 HTML、CSS、JavaScript 等靜態檔案
 from pydantic import BaseModel, Field  #BaseModel：建立資料模型，定義 API 接收的 JSON 資料格式;Field：設定欄位屬性長度等驗證規則
+import csv
+from io import StringIO
+from fastapi import UploadFile
 
 app = FastAPI()  #建立名為 app 的應用程式物件
 
@@ -65,7 +68,7 @@ def get_summary_detail(element_id: str):  # element_id: str 表示接收到的 e
 
 @app.post("/api/analysis/validate")
 def validate_analysis(request: AnalysisRequest):  # 後端不能相信前端驗證，因此再次確認副檔名  #request: AnalysisRequest：要求收到的 JSON 符合剛建立的 Pydantic 模型
-    if not request.file_name.lower().endswith(".csv"):  #.strip()：Python 版本的去除前後空白
+    if not request.file_name.lower().endswith(".csv"):  #.strip()：Python 版本的去除前後空白;檢查結尾
         raise HTTPException(
             status_code=400,  #資料不符合專案規則時，回傳 400 Bad Request
             detail="檔案格式錯誤，僅接受 CSV 檔案"
@@ -119,6 +122,29 @@ def logout_demo_session(response: Response):
     )  ##使用相同名稱、Path 及安全設定，要求瀏覽器刪除 Cookie
 
     return {"message": "後端測試 Session Cookie 已刪除"}
+
+@app.post("/api/analysis/preview")
+async def preview_csv(file: UploadFile):
+    if not (file.filename or "").lower().endswith(".csv"):
+        raise HTTPException(status_code=400, detail="請上傳 CSV 檔案")
+
+    max_bytes = 5 * 1024 *1024
+    content = await file.read(max_bytes + 1)  #file.read: 讀到的是檔案內容
+    if len(content) > max_bytes:
+        raise HTTPException(status_code=413, detail="檔案不可超過 5 MB")
+
+    try:
+        text = content.decode("utf-8-sig")
+        reader = csv.reader(StringIO(text, newline=""), strict=True)
+        columns = next(reader,[])  #把第一列當欄位名稱
+        row_count = sum(1 for row in reader if any(cell.strip() for cell in row))  #只計算後面的非空資料列，所以不把標題列算進筆數
+    except (UnicodeDecodeError, csv.Error):
+        raise HTTPException(status_code=400, detail="無法讀取，請確認是 UTF-8 CSV")
+
+    if not columns or row_count == 0:
+        raise HTTPException(status_code=400, detail="CSV 必須包含欄位名稱和至少一筆資料")
+
+    return {"columns": columns, "row_count": row_count}
 
 app.mount(  #掛載（掛接）一個子應用程式或服務到指定網址路徑
     "/",  #網站根網址

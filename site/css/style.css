@@ -242,7 +242,7 @@ footer p {
 /*選單與主內容共用同一個寬度設定*/
 :root {--sidebar-width: min(260px, 85vw);}  /*宣告一個全域變數*/
 
-#sidebar {width: var(--sidebar-width);}  /*讓側邊欄使用這個寬度
+#sidebar {width: var(--sidebar-width);}  /*讓側邊欄使用這個寬度*/
 
 /*標題、主內容與頁尾一起移動*/
 header,

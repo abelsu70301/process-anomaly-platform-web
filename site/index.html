@@ -180,7 +180,7 @@
 
                     <p> <!--把提醒內容包成一個完整段落-->
                         <strong>提醒：</strong> <!--表示重要內容，通常會顯示成粗體-->
-                        <small>目前僅接受 csv 格式，這一階段只建立操作介面，尚未真正上傳資料。</small> <!--表示補充或次要資訊，通常會顯示成較小文字-->
+                        <small>請選擇 CSV 檔案，按「檢查資料」後會顯示欄位名稱與資料筆數。此步驟只做預覽，不執行異常分析</small> <!--表示補充或次要資訊，通常會顯示成較小文字-->
                     </p>
 
                     <div class="form-field">
@@ -189,13 +189,18 @@
                         <!--可輸入多行文字-->
                     </div>
                     <div class="form-actions"> <!--預設是區塊元素，會從新的一行開始，所以「開始分析」按鈕就會換行-->
-                        <button type="submit" id="startButton">開始分析</button> <!--type="submit"：點擊後會觸發表單的 sumbit 事件-->
+                        <button type="submit" id="startButton">檢查資料</button> <!--type="submit"：點擊後會觸發表單的 sumbit 事件-->
                     </div>
 
                     <p id="formMessage" aria-live="polite"></p>  <!--formMessage: 顯示表單驗證或送出結果; ria-live="polite"：內容改變時，讓輔助工具適時讀出訊息-->
 
                 </form>
 
+                <section aria-labelledby="csvPreviewTitle">
+                    <h3 id="csvPreviewTitle">CSV 資料預覽</h3>
+                    <p id="csvPreviewMessage" aria-live="polite">尚未讀取 CSV 內容</p>
+                    <!--aria-live="polite"：文字更新時，讀屏工具可以在適當時機讀出新訊息-->
+                </section>
             </section>
         </main>
     </div>
@@ -204,7 +209,8 @@
     <p>製程異常分析輔助平台｜Web Programming 課程專案</p>
     </footer>
 
-    <script src="./app.js?v=27"></script>  <!--?v=27 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
+    <script src="./js/app.js?v=28"></script>  <!--?v=28 不會改變檔案內容，只會讓瀏覽器把它視為新版資源，重新下載 JavaScript-->
+    <script src="./js/menu.js"></script>
     <!--<script>：載入或撰寫JavaScript/src="app.js"：指定載入同一資料夾中的 app.js/放在 /body前面，是為了讓瀏覽器先讀完 HTML 內容再執行 JavaScript-->
 
 </body>
