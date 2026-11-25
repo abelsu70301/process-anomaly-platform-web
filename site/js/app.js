@@ -31,7 +31,7 @@ const checkServerSessionButton = document.getElementById("checkServerSessionButt
 const logoutServerSessionButton = document.getElementById("logoutServerSessionButton");  //刪除後端 Session 按鈕
 const serverSessionMessage = document.getElementById("serverSessionMessage");  //顯示後端 Session 測試結果
 const csvPreviewMessage = document.getElementById("csvPreviewMessage");
-
+const logoutButton = document.getElementById("logoutButton");
 
 
 
@@ -234,7 +234,26 @@ function handleGoogleLogin() {
     console.log("模擬 Google Token：", simulatedAccessToken);
 }
 
-googleLoginButton.addEventListener("click", handleGoogleLogin);
+googleLoginButton.addEventListener("click", function() {
+    window.location.href = "./auth/google/login";
+});
+
+async function loadLoginStatus() {
+    try {
+        const response = await fetch("./api/auth/me");
+        const data = await readJson(response);
+        logoutButton.hidden = !data.logged_in;
+
+        loginMessage.textContent = data.logged_in
+            ? "已使用學校 Google 帳號登入"
+            : "目前尚未登入 Google";
+    } catch (error) {
+        console.error("無法確認登入狀態:", error);
+        loginMessage.textContent = "無法確認登入狀態，請重新整理";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadLoginStatus);
 
 async function readJson(response) {  //readJson：統一檢查 HTTP 狀態並解析 JSON
 
@@ -246,6 +265,16 @@ async function readJson(response) {  //readJson：統一檢查 HTTP 狀態並解
 
     return data;  //把解析完成的資料交回呼叫這個函式的地方
 }
+
+logoutButton.addEventListener("click", async function() {
+    try {
+        const response = await fetch("./api/auth/logout", { method: "POST"});
+        await readJson(response);
+        await loadLoginStatus();
+    } catch (error) {
+        loginMessage.textContent = `登出失敗：${error.message}`;
+    }
+});
 
 
 function renderSummaryCards(cards) {  //renderSummaryCards：將 API 回傳的卡片資料顯示到網頁
@@ -396,23 +425,12 @@ async function previewCsv(selectedFile) {
 analysisForm.addEventListener("submit", function (event) {  //監聽分析表單的提交事件
     event.preventDefault();  //阻止瀏覽器預設表單提交行為並重新整理頁面
 
-    if (!simulatedAccessToken) {  //沒有 Token: 尚未完成身分驗證
-        formMessage.textContent = "身分驗證失敗：請先登入 (類似 HTTP 401) ";
-        return;
-    }
-
-    if (Date.now() >= simulatedAccessToken.exp) {  //Token 過期：登入狀態失效
-        simulatedAccessToken = null;
-        formMessage.textContent = "登入已過期，請重新登入 (類似 HTTP 401) ";
-        return;
-    }
-
-    if (simulatedAccessToken.role !== "engineer") {  //已登入但角色不符合
-        formMessage.textContent = "權限不足，無法執行分析 (類似 HTTP 403) ";
-        return;
-    }
-
     const selectedFile = csvFileInput.files[0];  //取得使用者選擇的第一個檔案
+
+    if (!selectedFile) {  //若 user 沒有選擇檔案
+        formMessage.textContent = "請先選擇 CSV 檔案";
+        return;
+    }
 
     if (!selectedFile.name.toLowerCase().endsWith(".csv")) {  //如果使用者沒有選擇 CSV 檔案
         formMessage.textContent = "檔案格式錯誤，請選擇 CSV 檔案";  //在網頁上顯示錯誤訊息

@@ -1,13 +1,39 @@
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import FastAPI, HTTPException, Request, Response, UploadFile, Depends
 #FastAPI：建立 Web 應用程式;HTTPException：讓API可以回傳404等HTTP錯誤
 #Response：讓後端在 HTTP Response 中設定 Cookie;Request：稍後讀取瀏覽器自動送回的 Cookie
 from fastapi.staticfiles import StaticFiles  #StaticFiles：提供 HTML、CSS、JavaScript 等靜態檔案
 from pydantic import BaseModel, Field  #BaseModel：建立資料模型，定義 API 接收的 JSON 資料格式;Field：設定欄位屬性長度等驗證規則
 import csv
 from io import StringIO
-from fastapi import UploadFile
+from pathlib import Path
+from dotenv import load_dotenv
+import os
+from authlib.integrations.starlette_client import OAuth
+from starlette.middleware.sessions import SessionMiddleware
+from authlib.integrations.base_client import OAuthError
+from httpx import HTTPError
+from fastapi.responses import RedirectResponse
+
+load_dotenv(Path(__file__).with_name(".env"))  #指的是「跟 server.py 同一層的 .env」
 
 app = FastAPI()  #建立名為 app 的應用程式物件
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.environ["SESSION_SECRET_KEY"],
+    session_cookie="process_oauth_session",
+    same_site="lax",
+    https_only=False,  #只供本機 HTTP 測試：公開 HTTPS 版要改為 True
+)
+
+oauth = OAuth()
+oauth.register(
+    name="google",
+    client_id=os.environ["GOOGLE_CLIENT_ID"],
+    client_secret=os.environ["GOOGLE_CLIENT_SECRET"],
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={"scope": "openid email"},
+)
 
 class AnalysisRequest(BaseModel):  #建立名為 AnalysisRequest 的資料模型，繼承自 BaseModel
     file_name: str = Field(min_length=5)  #file_name 欄位，字串型態，最短 5 個字元
@@ -66,7 +92,12 @@ def get_summary_detail(element_id: str):  # element_id: str 表示接收到的 e
 
     return detail  #找到資料時，自動轉換成 JSON
 
-@app.post("/api/analysis/validate")
+#共用函式
+def require_google_login(request: Request):
+    if not request.session.get("google_sub"):
+        raise HTTPException(status_code=401, detail="請使用 Google 登入")
+
+@app.post("/api/analysis/validate", dependencies=[Depends(require_google_login)])  #Depends(...) 會讓 FastAPI 在執行這兩個端點的函式前先檢查 Session
 def validate_analysis(request: AnalysisRequest):  # 後端不能相信前端驗證，因此再次確認副檔名  #request: AnalysisRequest：要求收到的 JSON 符合剛建立的 Pydantic 模型
     if not request.file_name.lower().endswith(".csv"):  #.strip()：Python 版本的去除前後空白;檢查結尾
         raise HTTPException(
@@ -123,7 +154,7 @@ def logout_demo_session(response: Response):
 
     return {"message": "後端測試 Session Cookie 已刪除"}
 
-@app.post("/api/analysis/preview")
+@app.post("/api/analysis/preview", dependencies=[Depends(require_google_login)])
 async def preview_csv(file: UploadFile):
     if not (file.filename or "").lower().endswith(".csv"):
         raise HTTPException(status_code=400, detail="請上傳 CSV 檔案")
@@ -145,6 +176,65 @@ async def preview_csv(file: UploadFile):
         raise HTTPException(status_code=400, detail="CSV 必須包含欄位名稱和至少一筆資料")
 
     return {"columns": columns, "row_count": row_count}
+
+#負責把瀏覽器送去 Google 選帳號
+@app.get("/auth/google/login")
+async def google_login(request: Request):
+    return await oauth.google.authorize_redirect(request, os.environ["GOOGLE_REDIRECT_URI"],)
+
+#負責接住選完帳號後的回傳，讓後端驗證身分
+@app.get("/auth/google/callback")
+async def google_callback(request: Request):
+    try:
+        token = await oauth.google.authorize_access_token(request)
+    except OAuthError:
+        raise HTTPException(status_code=400, detail="Google 登入未完成，請從登入入口重試",) from None
+    except HTTPError:
+        raise HTTPException(status_code=502, detail="目前無法連線到 Google，請稍後重試",) from None
+
+    user_info = token.get("userinfo")
+    if not user_info or not user_info.get("sub"):
+        raise HTTPException(status_code=400, detail="無法確認 Google 帳號身分")
+
+    allowed_email = os.getenv("GOOGLE_ALLOWED_EMAIL", "").strip().lower()
+    allowed_hd = os.getenv("GOOGLE_ALLOWED_HD", "").strip().lower()
+
+    email = (user_info.get("email") or "").strip().lower()
+    hosted_domain = (user_info.get("hd") or "").strip().lower()
+
+    if (
+        not allowed_email
+        or not allowed_hd
+        or user_info.get("email_verified") is not True
+        or email != allowed_email
+        or hosted_domain != allowed_hd
+    ):
+
+        raise HTTPException(status_code=403, detail="此 Google 帳號不在名單內")
+
+    request.session.clear()
+    request.session["google_sub"] = user_info["sub"]
+
+    return RedirectResponse(
+        url="/#login",
+        status_code=303,
+        headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
+    )
+
+#查詢登入狀態的 API
+@app.get("/api/auth/me")
+def get_login_status(request: Request, response: Response):
+    response.headers["Cache-Control"] = "no-store"
+    return {"logged_in": bool(request.session.get("google_sub"))}
+
+#登出
+@app.post("/api/auth/logout")
+def logout(request: Request):
+    if request.headers.get("origin") != "http://localhost:7777":
+        raise HTTPException(status_code=400, detail="不接受其他網站的登出請求")
+
+    request.session.clear()
+    return {"message": "已登出網站"}
 
 app.mount(  #掛載（掛接）一個子應用程式或服務到指定網址路徑
     "/",  #網站根網址
