@@ -13,6 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from authlib.integrations.base_client import OAuthError
 from httpx import HTTPError
 from fastapi.responses import RedirectResponse
+import math
 
 load_dotenv(Path(__file__).with_name(".env"))  #指的是「跟 server.py 同一層的 .env」
 
@@ -168,14 +169,76 @@ async def preview_csv(file: UploadFile):
         text = content.decode("utf-8-sig")
         reader = csv.reader(StringIO(text, newline=""), strict=True)
         columns = next(reader,[])  #把第一列當欄位名稱
-        row_count = sum(1 for row in reader if any(cell.strip() for cell in row))  #只計算後面的非空資料列，所以不把標題列算進筆數
+
+        numeric_columns = [
+            "Air temperature [K]",
+            "Process temperature [K]",
+            "Rotational speed [rpm]",
+            "Torque [Nm]",
+            "Tool wear [min]",
+        ]
+        label_column = "Machine failure"
+        required_columns = numeric_columns + [label_column]
+
+        missing_columns = [name for name in required_columns if name not in columns]
+        duplicate_columns = [name for name in required_columns if columns.count(name) > 1]
+        column_indexes = {
+            name: columns.index(name)
+            for name in required_columns
+            if columns.count(name) == 1
+        }
+        issues = {
+            name: {"missing": 0, "invalid": 0}
+            for name in column_indexes
+        }
+
+        row_count = 0
+        wrong_width_rows = 0
+
+        for row in reader:
+            if not any(cell.strip() for cell in row):
+                continue
+
+            row_count +=1
+
+            if len(row) != len(columns):
+                wrong_width_rows += 1
+                continue
+
+            for name, index in column_indexes.items():
+                value = row[index].strip()
+
+                if not value:
+                    issues[name]["missing"] += 1
+                elif name == label_column:
+                    if value not in {"0", "1"}:
+                        issues[name]["invalid"] += 1
+
+                else:
+                    try:
+                        valid_number = math.isfinite(float(value))
+                    except ValueError:
+                        valid_number = False
+
+                    if not valid_number:
+                        issues[name]["invalid"] += 1
+
     except (UnicodeDecodeError, csv.Error):
         raise HTTPException(status_code=400, detail="無法讀取，請確認是 UTF-8 CSV")
 
     if not columns or row_count == 0:
         raise HTTPException(status_code=400, detail="CSV 必須包含欄位名稱和至少一筆資料")
 
-    return {"columns": columns, "row_count": row_count}
+    return {
+        "columns": columns,
+        "row_count": row_count,
+        "quality": {
+            "missing_columns": missing_columns,
+            "duplicate_columns": duplicate_columns,
+            "wrong_width_rows": wrong_width_rows,
+            "column_issues": issues,
+        },
+    }
 
 #負責把瀏覽器送去 Google 選帳號
 @app.get("/auth/google/login")

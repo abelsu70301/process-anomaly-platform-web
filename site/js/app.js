@@ -32,7 +32,7 @@ const logoutServerSessionButton = document.getElementById("logoutServerSessionBu
 const serverSessionMessage = document.getElementById("serverSessionMessage");  //顯示後端 Session 測試結果
 const csvPreviewMessage = document.getElementById("csvPreviewMessage");
 const logoutButton = document.getElementById("logoutButton");
-
+const csvQualityMessage = document.getElementById("csvQualityMessage");
 
 
 function getStorageNickname() { //統一取得並檢查測試暱稱
@@ -395,8 +395,43 @@ async function updateAnalysisStatus(selectedFile, engineerNote) {  //建立一�
     }
 }
 
+function showCsvQuality(quality) {
+    if (!quality) {
+        csvQualityMessage.textContent = "未取得資料品質檢查結果";
+        return;
+    }
+
+    const problems = [];
+
+    if (quality.missing_columns.length >0) {
+        problems.push(`缺少必要欄位：${quality.missing_columns.join("、")}`);
+    }
+
+    if (quality.duplicate_columns.length > 0) {
+        problems.push(`必要欄位名稱重複：${quality.duplicate_columns.join("、")}`);
+    }
+
+    if (quality.wrong_width_rows > 0) {
+        problems.push(`${quality.wrong_width_rows} 筆資料的欄位數與表頭不符`);
+    }
+
+    for (const [name, counts] of Object.entries(quality.column_issues)) {
+        if (counts.missing > 0) {
+            problems.push(`${name} 有 ${counts.missing} 筆空白值`);
+        }
+        if (counts.invalid > 0) {
+            problems.push(`${name} 有 ${counts.invalid} 筆無效值`);
+        }
+    }
+
+    csvQualityMessage.textContent = problems.length === 0
+        ? "資料品質檢查通過：未發現欄位或格式問題。"
+        : `資料品質檢查未通過：${problems.join("；")}。`;
+}
+
 async function previewCsv(selectedFile) {
     csvPreviewMessage.textContent = "正在讀取 CSV...";
+    csvQualityMessage.textContent = "";
 
     const formData = new FormData();
     formData.append("file", selectedFile);  //送的是整個檔案
@@ -415,6 +450,7 @@ async function previewCsv(selectedFile) {
         }
         
         csvPreviewMessage.textContent = `共 ${data.row_count} 筆資料。欄位:${data.columns.join("、")}`;
+        showCsvQuality(data.quality);
     } catch (error) {
         console.error("CSV 預覽失敗 :", error);
         csvPreviewMessage.textContent = `預覽失敗 : ${error.message}`;
