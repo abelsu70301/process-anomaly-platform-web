@@ -265,3 +265,36 @@ body.sidebar-open footer {
         transition: none;
     }
 }
+
+/*登入區*/
+.header-auth {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.header-auth #loginMessage {
+    margin: 0;
+}
+
+.top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1002; /* 高於側欄，展開時仍能按 ☰ 收合 */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    margin-inline: -40px; /* 抵銷 body 左右各 40px 的內距 */
+    margin-top: -40px;    /* 抵銷 body 上方 40px 的內距 */
+    background-color: var(--color-page-background);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.top-bar .sidebar-toggle {
+    position: static; /* 選單按鈕不再自己固定，由整排一起置頂 */
+    flex-shrink: 0;
+}

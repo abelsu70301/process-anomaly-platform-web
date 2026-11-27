@@ -279,7 +279,7 @@ async def google_callback(request: Request):
     request.session["google_sub"] = user_info["sub"]
 
     return RedirectResponse(
-        url="/#login",
+        url="/#analysis",
         status_code=303,
         headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
     )

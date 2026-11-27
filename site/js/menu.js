@@ -1,7 +1,6 @@
 const sidebarToggle = document.getElementById("sidebarToggle");  //左上角按鈕
 const sidebar = document.getElementById("sidebar");  //側邊欄
-const loginSection = document.getElementById("login");
-const analysisSection = document.getElementById("analysis");
+
 
 //建立共用函式
 function setSidebarOpen(open) {  //opem是自訂參數名稱，呼叫時傳入true:展開;false:收合
@@ -29,13 +28,3 @@ document.addEventListener("keydown", function(event) {
             setSidebarOpen(false);  //再收起選單，避免焦點留在即將不能操作的區域
         }
 });
-
-function showCurrentSection() {
-    const isAnalysis = window.location.hash === "#analysis";
-
-    loginSection.hidden = isAnalysis;
-    analysisSection.hidden = !isAnalysis;
-}
-
-window.addEventListener("hashchange", showCurrentSection);
-showCurrentSection();

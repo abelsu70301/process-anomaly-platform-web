@@ -14,9 +14,6 @@ const summaryDetailText = document.getElementById("summaryDetailText");  //取�
 const analysisForm = document.getElementById("analysisForm");  //取得分析表單元素
 const formMessage = document.getElementById("formMessage");  //取得表單訊息顯示元素
 const engineerNoteInput = document.getElementById("engineerNote");  //取得工程師備註輸入欄位元素
-const loginForm = document.getElementById("loginForm");  //取得登入表單
-const loginEmailInput = document.getElementById("loginEmail");  //取得 Email 輸入欄位
-const loginPasswordInPut = document.getElementById("loginPassword");  //取得密碼輸入欄位
 const loginMessage = document.getElementById("loginMessage");  //取得登入狀態文字
 const googleLoginButton = document.getElementById("googleLoginButton");  //取得模擬 Google 登入按鈕
 const storageNicknameInput = document.getElementById("storageNickname");  //測試暱稱輸入欄位
@@ -33,7 +30,8 @@ const serverSessionMessage = document.getElementById("serverSessionMessage");  /
 const csvPreviewMessage = document.getElementById("csvPreviewMessage");
 const logoutButton = document.getElementById("logoutButton");
 const csvQualityMessage = document.getElementById("csvQualityMessage");
-
+const loginNotice = document.getElementById("loginNotice");
+const continueGoogleLogin = document.getElementById("continueGoogleLogin");
 
 function getStorageNickname() { //統一取得並檢查測試暱稱
     const nickname = storageNicknameInput.value.trim();
@@ -195,46 +193,11 @@ async function logoutServerSession() {
 
 logoutServerSessionButton.addEventListener("click", logoutServerSession);
 
-let simulatedAccessToken = null;  //暫存模擬 Token ; 重新整理頁面後就會消失
-
-function handleLogin(event) {
-    event.preventDefault();  //阻止表單重新整理頁面
-
-    const email = loginEmailInput.value.trim();  //取得 Email 並移除前後空白
-    const password = loginPasswordInPut.value;  //取得密碼，只用來確認欄位已有輸入
-
-    if (!email || password.length <8) {  // || :or
-        loginMessage.textContent = "登入失敗：請確認 Email 與密碼格式";
-        return;
-    }
-
-    simulatedAccessToken = {
-        sub: "demo-engineer-001",  //固定的測試使用者 ID
-        role: "engineer",
-        exp: Date.now() + 60 * 60 *1000  //一小時後的到期時間
-    };  //建立教學用 Token 資料，有效時間設定為一小時
-
-    loginMessage.textContent = `模擬登入成功：${email} (角色：工程師) `;  //畫面顯示
-
-    console.log("模擬 Token：", simulatedAccessToken);
-}
-
-loginForm.addEventListener("submit", handleLogin);
-
-function handleGoogleLogin() {
-    simulatedAccessToken = {
-        sub: "google-demo-user-001",
-        role: "engineer",
-        provider: "google",
-        exp: Date.now() + 60 * 60 *1000
-    };  //模擬 Google 驗證成功後，網站取得的登入資訊
-
-    loginMessage.textContent = "模擬 Google 登入成功 (角色：工程師) ";
-
-    console.log("模擬 Google Token：", simulatedAccessToken);
-}
-
 googleLoginButton.addEventListener("click", function() {
+    loginNotice.showModal();
+});
+
+continueGoogleLogin.addEventListener("click", function() {
     window.location.href = "./auth/google/login";
 });
 
@@ -242,6 +205,7 @@ async function loadLoginStatus() {
     try {
         const response = await fetch("./api/auth/me");
         const data = await readJson(response);
+        googleLoginButton.hidden = data.logged_in;
         logoutButton.hidden = !data.logged_in;
 
         loginMessage.textContent = data.logged_in
