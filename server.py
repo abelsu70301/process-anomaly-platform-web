@@ -240,10 +240,19 @@ async def preview_csv(file: UploadFile):
         },
     }
 
-#負責把瀏覽器送去 Google 選帳號
+#負責把瀏覽器送去 Google 選帳號，並且公開網址和localhost都可以
 @app.get("/auth/google/login")
-async def google_login(request: Request):
-    return await oauth.google.authorize_redirect(request, os.environ["GOOGLE_REDIRECT_URI"],)
+async def google_login(request: Request, mode: str = "local"):
+    if mode == "local":
+        redirect_uri = os.environ["GOOGLE_REDIRECT_URI"]
+    elif mode == "demo":
+        redirect_uri = os.getenv("GOOGLE_DEMO_REDIRECT_URI", "")
+        if not redirect_uri:
+            raise HTTPException(status_code=503, detail="課程站登入尚未設定")
+    else:
+        raise HTTPException(status_code=400, detail="不支援的登入模式")
+
+    return await oauth.google.authorize_redirect(request, redirect_uri)
 
 #負責接住選完帳號後的回傳，讓後端驗證身分
 @app.get("/auth/google/callback")
@@ -279,7 +288,7 @@ async def google_callback(request: Request):
     request.session["google_sub"] = user_info["sub"]
 
     return RedirectResponse(
-        url="/#analysis",
+        url="../../#analysis",
         status_code=303,
         headers={"Cache-Control": "no-store", "Referrer-Policy": "no-referrer"},
     )
@@ -293,8 +302,13 @@ def get_login_status(request: Request, response: Response):
 #登出
 @app.post("/api/auth/logout")
 def logout(request: Request):
-    if request.headers.get("origin") != "http://localhost:7777":
-        raise HTTPException(status_code=400, detail="不接受其他網站的登出請求")
+    allowed_origins = {
+        "http://localhost:7777",
+        "https://demo.wke.csie.ncnu.edu.tw",
+    }
+
+    if request.headers.get("origin") not in allowed_origins:
+        raise HTTPException(status_code=403, detail="不接受其他網站的登出請求")
 
     request.session.clear()
     return {"message": "已登出網站"}

@@ -198,7 +198,11 @@ googleLoginButton.addEventListener("click", function() {
 });
 
 continueGoogleLogin.addEventListener("click", function() {
-    window.location.href = "./auth/google/login";
+    const mode = window.location.origin === "http://localhost:7777"
+        ? "local"
+        : "demo";
+
+    window.location.href = `./auth/google/login?mode=${mode}`;
 });
 
 async function loadLoginStatus() {
